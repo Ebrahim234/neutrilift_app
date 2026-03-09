@@ -6,7 +6,7 @@ import 'package:neutrilift/views/authentication/home/pages/profile.dart';
 import 'package:neutrilift/views/authentication/home/pages/stats.dart';
 import 'package:neutrilift/views/authentication/home/pages/workouts.dart';
 
-import 'home_page.dart';
+import 'home_page/view.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});

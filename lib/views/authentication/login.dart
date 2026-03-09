@@ -10,7 +10,7 @@ import '../../core/logic/api_helper.dart';
 import '../../core/ui/app_button.dart';
 import '../../core/ui/app_input.dart';
 import '../../core/ui/app_login_or_app_register.dart';
-import 'home/pages/home_page.dart';
+import 'home/pages/home_page/view.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -31,6 +31,21 @@ class _LoginViewState extends State<LoginView> {
   final passwordController = TextEditingController();
 
   final dio = ApiHelper.createDio();
+  Future<void> _checkAuth() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('access_token');
+    print("TOKEN: $token"); // ✅ اطبع الـ token
+
+    try {
+      await dio.get("/");
+    } on DioException catch (e) {
+      final code = e.response?.data?['code'];
+      if (code == 'not_authenticated') {
+        if (!mounted) return;
+        goTo(LoginView());
+      }
+    }
+  }
 
   Future<void> login() async {
     if (emailController.text.isEmpty || passwordController.text.isEmpty) {
@@ -55,15 +70,9 @@ class _LoginViewState extends State<LoginView> {
       print("RESPONSE: $data");
       final prefs = await SharedPreferences.getInstance();
 
-      if (isChecked) {
-        await prefs.setString('access_token', data['access']);
-        await prefs.setString('refresh_token', data['refresh']);
-      } else {
-        await prefs.remove('access_token');
-        await prefs.remove('refresh_token');
-        LoginView.tempAccessToken = data['access'];
-        LoginView.tempRefreshToken = data['refresh'];
-      }
+      // ✅ بعد - بيحفظ دايماً
+      await prefs.setString('access_token', data['access']);
+      await prefs.setString('refresh_token', data['refresh']);
 
       // ✅ بعت request للـ home page على طول بعد الـ login
       await dio.get("/");

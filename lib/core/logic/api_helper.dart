@@ -19,59 +19,102 @@ class ApiHelper {
 
     dio.interceptors.add(
       InterceptorsWrapper(
-        // ✅ بيبعت الـ access token تلقائياً مع كل request
         onRequest: (options, handler) async {
-          final prefs = await SharedPreferences.getInstance();
-          final token =
-              prefs.getString('access_token') ?? LoginView.tempAccessToken;
+          // ✅ متحطش token بس في login و signup
+          final isAuthRequest =
+              options.path.contains('api/token/') ||
+                  options.path.contains('api/register/');
 
-          if (token != null) {
-            options.headers['Authorization'] = 'Bearer $token';
+          if (!isAuthRequest) {
+            final prefs = await SharedPreferences.getInstance();
+            final token =
+                prefs.getString('access_token') ?? LoginView.tempAccessToken;
+
+            if (token != null) {
+              options.headers['Authorization'] = 'Bearer $token';
+            }
           }
           handler.next(options);
         },
 
-        // ✅ بيمسك الـ 401 ويعمل token refresh تلقائي
         onError: (error, handler) async {
-          if (error.response?.statusCode == 401) {
-            final prefs = await SharedPreferences.getInstance();
-            final refreshToken = prefs.getString('refresh_token') ??
-                LoginView.tempRefreshToken;
+          print("🔴 INTERCEPTOR HIT: ${error.response?.statusCode}");
+          print("🔴 CODE: ${error.response?.data?['code']}");
 
-            if (refreshToken == null) {
+          if (error.response?.statusCode == 401) {
+            final responseData = error.response?.data;
+
+            if (responseData is Map &&
+                responseData['code'] == 'not_authenticated') {
+              print("🔴 NOT AUTHENTICATED → goTo Login");
               goTo(LoginView());
               return;
             }
 
-            try {
-              final resp = await Dio(
-                BaseOptions(
-                  baseUrl: baseUrl,
-                  headers: {"Content-Type": "application/json"},
-                ),
-              ).post("api/token/refresh/", data: {"refresh": refreshToken});
+            if (responseData is Map &&
+                responseData['code'] == 'token_not_valid') {
+              print("🟡 TOKEN EXPIRED → trying refresh");
 
-              final newAccess = resp.data['access'];
-              final newRefresh = resp.data['refresh'];
-
-              // احفظ الـ tokens الجدد
-              if (prefs.getString('access_token') != null) {
-                await prefs.setString('access_token', newAccess);
-                await prefs.setString('refresh_token', newRefresh);
-              } else {
-                LoginView.tempAccessToken = newAccess;
-                LoginView.tempRefreshToken = newRefresh;
+              final isRefreshRequest = error.requestOptions.path
+                  .contains('api/token/refresh/');
+              if (isRefreshRequest) {
+                print("🔴 REFRESH FAILED → goTo Login");
+                goTo(LoginView());
+                return;
               }
 
-              error.requestOptions.headers['Authorization'] =
-              'Bearer $newAccess';
-              handler.resolve(await dio.fetch(error.requestOptions));
-            } catch (e) {
-              goTo(LoginView());
+              final prefs = await SharedPreferences.getInstance();
+              final refreshToken = prefs.getString('refresh_token') ??
+                  LoginView.tempRefreshToken;
+              print("🟡 REFRESH TOKEN: $refreshToken");
+
+              if (refreshToken == null) {
+                print("🔴 NO REFRESH TOKEN → goTo Login");
+                goTo(LoginView());
+                return;
+              }
+
+              try {
+                print("🟡 CALLING REFRESH ENDPOINT...");
+                final refreshResponse = await Dio(
+                  BaseOptions(
+                    baseUrl: baseUrl,
+                    headers: {
+                      "Content-Type": "application/json",
+                      "ngrok-skip-browser-warning": "true",
+                    },
+                  ),
+                ).post(
+                  "api/token/refresh/",
+                  data: {"refresh": refreshToken},
+                );
+
+                print("✅ REFRESH SUCCESS: ${refreshResponse.data}");
+
+                final newAccess = refreshResponse.data['access'];
+                final newRefresh = refreshResponse.data['refresh'];
+
+                if (prefs.getString('access_token') != null) {
+                  await prefs.setString('access_token', newAccess);
+                  await prefs.setString('refresh_token', newRefresh);
+                } else {
+                  LoginView.tempAccessToken = newAccess;
+                  LoginView.tempRefreshToken = newRefresh;
+                }
+
+                error.requestOptions.headers['Authorization'] =
+                'Bearer $newAccess';
+                print("✅ RETRYING ORIGINAL REQUEST...");
+                handler.resolve(await dio.fetch(error.requestOptions));
+              } catch (e) {
+                print("🔴 REFRESH EXCEPTION: $e");
+                goTo(LoginView());
+              }
+              return;
             }
-          } else {
-            handler.next(error);
           }
+
+          handler.next(error);
         },
       ),
     );
