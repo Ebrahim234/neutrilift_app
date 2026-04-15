@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:neutrilift/core/logic/api_helper.dart';
 import 'package:neutrilift/core/logic/helper_method.dart';
-import 'package:neutrilift/views/authentication/login.dart';
 import 'package:pedometer/pedometer.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
