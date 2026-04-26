@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:neutrilift/core/ui/app_image.dart';
+<<<<<<< HEAD
 import 'package:neutrilift/views/home/pages/home_page/widgets/food_scanner.dart';
 import 'package:neutrilift/views/home/pages/home_page/widgets/no_plan.dart';
 import 'package:neutrilift/views/home/pages/home_page/widgets/stats_card/stat_card_side.dart';
@@ -9,6 +10,10 @@ import 'package:neutrilift/views/home/pages/home_page/widgets/stats_card/stat_ca
 import 'package:neutrilift/views/home/pages/home_page/widgets/week_calender.dart';
 import 'package:neutrilift/views/home/pages/home_page/widgets/workout.dart';
 import 'package:neutrilift/views/home/pages/workouts.dart';
+=======
+import 'package:neutrilift/views/home/pages/home_page/widgets/stats_card/stat_card_side.dart';
+import 'package:neutrilift/views/home/pages/home_page/widgets/stats_card/stat_card_top.dart';
+>>>>>>> 660ab4c19fb7400b54f03ad6674ddaf913ebb759
 import 'package:permission_handler/permission_handler.dart';
 import 'home_controller.dart';
 import 'home_model.dart';
