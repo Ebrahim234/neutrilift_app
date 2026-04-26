@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:neutrilift/core/ui/app_image.dart';
-<<<<<<< HEAD
-=======
-import 'package:neutrilift/views/home/pages/plans.dart';
->>>>>>> 660ab4c19fb7400b54f03ad6674ddaf913ebb759
 import 'package:neutrilift/views/home/pages/profile.dart';
 import 'package:neutrilift/views/home/pages/stats.dart';
 import 'package:neutrilift/views/home/pages/workouts.dart';

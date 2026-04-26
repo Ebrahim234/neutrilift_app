@@ -2,12 +2,14 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:neutrilift/core/logic/api_helper.dart';
 import 'package:neutrilift/core/logic/helper_method.dart';
+import 'package:neutrilift/views/authentication/login.dart';
 import 'package:neutrilift/views/home/pages/home_page/home_model.dart';
 import 'package:pedometer/pedometer.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../authentication/details.dart';
+
 class HomeController {
   final dio = ApiHelper.createDio();
   StreamSubscription<StepCount>? stepCountStream;
@@ -17,13 +19,17 @@ class HomeController {
     final token = prefs.getString('access_token');
     print("TOKEN: $token");
 
+    if (token == null) {
+      goTo(LoginView());
+      return;
+    }
+
     try {
       final response = await dio.get(
         "/",
         options: Options(
           followRedirects: false,
-          // ✅ شيل validateStatus أو خليها تعدي 401 للـ interceptor
-          validateStatus: (status) => status == 302 || status == 200,
+          validateStatus: (status) => status == 302 || status == 200 || status == 401,
         ),
       );
 
@@ -63,15 +69,11 @@ class HomeController {
     stepCountStream?.cancel();
   }
 
-
   Future<HomeModel?> getHomeData() async {
     try {
       final response = await dio.get("/");
-
       print("HOME DATA: ${response.data}");
-
       return HomeModel.fromJson(response.data);
-
     } on DioException catch (e) {
       print("ERROR: ${e.response?.data}");
       return null;
