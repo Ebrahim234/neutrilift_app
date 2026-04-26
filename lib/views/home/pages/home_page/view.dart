@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:neutrilift/core/ui/app_image.dart';
-import 'package:neutrilift/views/authentication/home/pages/home_page/widgets/stats_card/stat_card_side.dart';
-import 'package:neutrilift/views/authentication/home/pages/home_page/widgets/stats_card/stat_card_top.dart';
+import 'package:neutrilift/views/home/pages/home_page/widgets/stats_card/stat_card_side.dart';
+import 'package:neutrilift/views/home/pages/home_page/widgets/stats_card/stat_card_top.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'home_controller.dart';
 

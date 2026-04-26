@@ -10,7 +10,7 @@ import '../../core/logic/api_helper.dart';
 import '../../core/ui/app_button.dart';
 import '../../core/ui/app_input.dart';
 import '../../core/ui/app_login_or_app_register.dart';
-import 'home/pages/home_page/view.dart';
+import '../home/pages/home_page/view.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});

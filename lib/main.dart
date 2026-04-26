@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:neutrilift/views/authentication/home/pages/view.dart';
+import 'package:neutrilift/views//home/pages/view.dart';
 import 'package:neutrilift/views/authentication/login.dart';
 import 'package:neutrilift/views/authentication/register.dart';
-import 'package:neutrilift/views/authentication/home/pages/home_page/view.dart';
+import 'package:neutrilift/views//home/pages/home_page/view.dart';
 import 'package:neutrilift/views/authentication/details.dart';
 import 'package:neutrilift/views/splash.dart';
 

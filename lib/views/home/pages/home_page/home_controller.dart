@@ -6,7 +6,7 @@ import 'package:pedometer/pedometer.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../details.dart';
+import '../../../authentication/details.dart';
 
 class HomeController {
   final dio = ApiHelper.createDio();
