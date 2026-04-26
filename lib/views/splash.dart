@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:neutrilift/core/logic/helper_method.dart';
 import 'package:neutrilift/views/authentication/login.dart';
-import 'package:neutrilift/views/authentication/register.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'authentication/home/pages/home_page/view.dart';
+import 'home/pages/home_page/view.dart';
 
 class SplashView extends StatefulWidget {
   const SplashView({super.key});

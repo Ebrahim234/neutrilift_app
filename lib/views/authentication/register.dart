@@ -167,6 +167,7 @@ class _RegisterViewState extends State<RegisterView> {
                 title: "Next",
                 isLoading: isLoading,
                 onPressed: register,
+                width: double.infinity,
               ),
               SizedBox(height: 40),
               AppLoginOrAppRegister(isLogin: false),

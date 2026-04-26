@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:neutrilift/core/ui/app_image.dart';
-import 'package:neutrilift/views/authentication/home/pages/plans.dart';
-import 'package:neutrilift/views/authentication/home/pages/profile.dart';
-import 'package:neutrilift/views/authentication/home/pages/stats.dart';
-import 'package:neutrilift/views/authentication/home/pages/workouts.dart';
+import 'package:neutrilift/views/home/pages/profile.dart';
+import 'package:neutrilift/views/home/pages/stats.dart';
+import 'package:neutrilift/views/home/pages/workouts.dart';
 
+import '../../plan/view.dart';
 import 'home_page/view.dart';
 
 class HomeView extends StatefulWidget {

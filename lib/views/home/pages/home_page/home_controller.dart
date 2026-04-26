@@ -2,12 +2,12 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:neutrilift/core/logic/api_helper.dart';
 import 'package:neutrilift/core/logic/helper_method.dart';
+import 'package:neutrilift/views/home/pages/home_page/home_model.dart';
 import 'package:pedometer/pedometer.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../details.dart';
-
+import '../../../authentication/details.dart';
 class HomeController {
   final dio = ApiHelper.createDio();
   StreamSubscription<StepCount>? stepCountStream;
@@ -61,5 +61,20 @@ class HomeController {
 
   void dispose() {
     stepCountStream?.cancel();
+  }
+
+
+  Future<HomeModel?> getHomeData() async {
+    try {
+      final response = await dio.get("/");
+
+      print("HOME DATA: ${response.data}");
+
+      return HomeModel.fromJson(response.data);
+
+    } on DioException catch (e) {
+      print("ERROR: ${e.response?.data}");
+      return null;
+    }
   }
 }

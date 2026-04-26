@@ -4,7 +4,8 @@ import 'package:neutrilift/core/logic/api_helper.dart';
 import 'package:neutrilift/core/logic/helper_method.dart';
 import 'package:neutrilift/core/ui/app_button.dart';
 import 'package:neutrilift/core/ui/app_input.dart';
-import 'home/pages/home_page/view.dart';
+
+import '../home/pages/home_page/view.dart';
 
 class DetailsView extends StatefulWidget {
   const DetailsView({super.key});
@@ -131,7 +132,7 @@ class _DetailsViewState extends State<DetailsView> {
               // ✅ لو بيعمل loading يعرض CircularProgressIndicator
               isLoading
                   ? Center(child: CircularProgressIndicator())
-                  : AppButton(onPressed: submitDetails, title: 'Next'),
+                  : AppButton(onPressed: submitDetails, title: 'Next',width: double.infinity,),
             ],
           ),
         ),

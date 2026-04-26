@@ -30,7 +30,7 @@ class ForgetPasswordView extends StatelessWidget {
               SizedBox(height: 24,),
               AppInput(hintText: "Enter your email",isEmail: true,),
               SizedBox(height: 150,),
-              AppButton(title: "Next",),
+              AppButton(title: "Next",width: double.infinity,onPressed: (){}),
 
             ],
           ),

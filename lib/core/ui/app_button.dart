@@ -7,26 +7,27 @@ class AppButton extends StatelessWidget {
     required this.title,
     this.onPressed,
     this.icon,
-    this.isLoading = false,
+    this.isLoading = false, required this.width,
   });
 
   final String title;
   final VoidCallback? onPressed;
   final Widget? icon;
   final bool isLoading;
+  final double width;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: SizedBox(
-        width: double.infinity,
+        width: width,
         height: 55,
         child: FilledButton(
           onPressed: isLoading ? null : onPressed,
           style: FilledButton.styleFrom(
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
             ),
           ),
           child: isLoading

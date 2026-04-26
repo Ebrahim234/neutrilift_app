@@ -23,8 +23,8 @@ class ApiHelper {
           // ✅ متحطش token بس في login و signup
           final isAuthRequest =
               options.path.contains('api/token/') ||
-                  options.path.contains('api/register/');
-
+                  options.path.contains('api/register/') ||
+                  options.path.contains('api/login/');
           if (!isAuthRequest) {
             final prefs = await SharedPreferences.getInstance();
             final token =

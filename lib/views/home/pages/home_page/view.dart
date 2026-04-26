@@ -2,10 +2,16 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:neutrilift/core/ui/app_image.dart';
-import 'package:neutrilift/views/authentication/home/pages/home_page/widgets/stats_card/stat_card_side.dart';
-import 'package:neutrilift/views/authentication/home/pages/home_page/widgets/stats_card/stat_card_top.dart';
+import 'package:neutrilift/views/home/pages/home_page/widgets/food_scanner.dart';
+import 'package:neutrilift/views/home/pages/home_page/widgets/no_plan.dart';
+import 'package:neutrilift/views/home/pages/home_page/widgets/stats_card/stat_card_side.dart';
+import 'package:neutrilift/views/home/pages/home_page/widgets/stats_card/stat_card_top.dart';
+import 'package:neutrilift/views/home/pages/home_page/widgets/week_calender.dart';
+import 'package:neutrilift/views/home/pages/home_page/widgets/workout.dart';
+import 'package:neutrilift/views/home/pages/workouts.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'home_controller.dart';
+import 'home_model.dart';
 
 class HomePageView extends StatefulWidget {
   const HomePageView({super.key});
@@ -24,6 +30,16 @@ class _HomePageViewState extends State<HomePageView> {
     super.initState();
     _controller.checkAuth();
     _initSteps();
+    _loadHomeData();
+
+  }
+  Future<void> _loadHomeData() async {
+    final data = await _controller.getHomeData();
+    if (data != null) {
+      setState(() {
+        homeData = data;
+      });
+    }
   }
 
   Future<void> _initSteps() async {
@@ -41,6 +57,8 @@ class _HomePageViewState extends State<HomePageView> {
       await openAppSettings();
     }
   }
+
+  HomeModel? homeData;
 
   @override
   void dispose() {
@@ -60,7 +78,12 @@ class _HomePageViewState extends State<HomePageView> {
       backgroundColor: Color(0xffF0F0F0),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsetsDirectional.only(start: 16, end: 16, top: 30),
+          padding: EdgeInsetsDirectional.only(
+            start: 16,
+            end: 16,
+            top: 30,
+            bottom: 60,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -139,7 +162,16 @@ class _HomePageViewState extends State<HomePageView> {
                   ],
                 ),
               ),
-              SizedBox(height: 24),
+              SizedBox(height: 16.h),
+              if (homeData?.hasPlan == false) ...[
+                NoPlanWidget(),
+              ] else ...[
+                WeekCalender(),
+                SizedBox(height: 8.h),
+                Workout(),
+              ],
+              SizedBox(height: 8.h),
+              FoodScannerWidget(),
             ],
           ),
         ),
