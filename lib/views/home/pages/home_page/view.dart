@@ -111,7 +111,7 @@ class _HomePageViewState extends State<HomePageView> {
               SizedBox(height: 16.h),
               Container(
                 padding: EdgeInsetsDirectional.all(16),
-                height: 192,
+                height: 206,
                 decoration: BoxDecoration(
                   color: Color(0xffFFFFFF),
                   borderRadius: BorderRadius.circular(16.r),

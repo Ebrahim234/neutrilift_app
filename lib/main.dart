@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:neutrilift/views/plan/automatic/pages/assign_workouts.dart';
 import 'package:neutrilift/views/plan/automatic/pages/generating_plan.dart';
-import 'package:neutrilift/views/plan/automatic/pages/SuccessDialog.dart';
 import 'package:neutrilift/views/plan/automatic/pages/review_plan.dart';
-import 'package:neutrilift/views/splash.dart';
 
 import 'core/logic/helper_method.dart';
 
@@ -68,7 +65,7 @@ class MyApp extends StatelessWidget {
               ),
             ),
           ),
-          home:AssignWorkoutsView(),
+          home:ReviewPlanView(),
         );
       },
     );
