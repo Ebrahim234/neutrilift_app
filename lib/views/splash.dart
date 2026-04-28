@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:neutrilift/core/logic/helper_method.dart';
 import 'package:neutrilift/views/authentication/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'home/pages/home_page/view.dart';
+
+import 'home/pages/view.dart';
 
 class SplashView extends StatefulWidget {
   const SplashView({super.key});
@@ -26,7 +27,7 @@ class _SplashViewState extends State<SplashView> {
 
     if (token != null) {
       // ✅ عنده token محفوظ → روح Home
-      goTo(HomePageView());
+      goTo(HomeView());
     } else {
       // ✅ مفيش token → روح Register
       goTo(LoginView());

@@ -51,9 +51,16 @@ class ReviewCard extends StatelessWidget {
               ],
             ),
             if (isEdit)
-              IconButton(
-                onPressed: () {},
-                icon: AppImage(image: "edit.svg"),
+              Container(
+                padding: EdgeInsetsDirectional.all(4),
+                decoration: BoxDecoration(
+                  color: Color(0xF3F4F61A).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                child: IconButton(
+                  onPressed: () {},
+                  icon: AppImage(image: "edit.svg"),
+                ),
               ),
           ],
         ),

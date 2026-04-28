@@ -8,9 +8,6 @@ import 'package:neutrilift/views/home/pages/home_page/widgets/stats_card/stat_ca
 import 'package:neutrilift/views/home/pages/home_page/widgets/stats_card/stat_card_top.dart';
 import 'package:neutrilift/views/home/pages/home_page/widgets/week_calender.dart';
 import 'package:neutrilift/views/home/pages/home_page/widgets/workout.dart';
-import 'package:neutrilift/views/home/pages/workouts.dart';
-import 'package:neutrilift/views/home/pages/home_page/widgets/stats_card/stat_card_side.dart';
-import 'package:neutrilift/views/home/pages/home_page/widgets/stats_card/stat_card_top.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'home_controller.dart';
 import 'home_model.dart';
@@ -23,6 +20,7 @@ class HomePageView extends StatefulWidget {
 }
 
 class _HomePageViewState extends State<HomePageView> {
+  final bool isPlanDone = false;
   final _controller = HomeController();
   int steps = 0;
   String stepStatus = "loading";

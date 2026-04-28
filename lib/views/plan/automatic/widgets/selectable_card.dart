@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:neutrilift/core/ui/app_image.dart';
 
-class GoalCard extends StatelessWidget {
+class SelectableCard extends StatelessWidget {
   final String image;
   final String goal;
   final bool isSelected;
   final VoidCallback onTap;
 
-  const GoalCard({
+  const SelectableCard({
     super.key,
     required this.image,
     required this.goal,

@@ -59,7 +59,7 @@ class _LoginViewState extends State<LoginView> {
 
     try {
       final response = await dio.post(
-        "api/login/",
+        "/api/login/",
         data: {
           "email": emailController.text.trim(),
           "password": passwordController.text.trim(),

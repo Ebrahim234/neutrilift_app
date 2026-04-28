@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:neutrilift/core/ui/app_back.dart';
 import 'package:neutrilift/core/ui/app_button.dart';
 
-import 'package:neutrilift/views/plan/automatic/widgets/goal_card.dart';
+import 'package:neutrilift/views/plan/automatic/widgets/selectable_card.dart';
 import 'package:neutrilift/views/plan/automatic/widgets/goal_icon.dart';
 import 'package:neutrilift/views/plan/automatic/widgets/weight_input.dart';
 
@@ -66,14 +66,14 @@ class _AutomaticLifeStylViewState extends State<AutomaticLifeStylView> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  GoalCard(
+                  SelectableCard(
                     image: "gain_weight.svg",
                     goal: "Gain weight",
                     isSelected: selectedGoal == "Gain weight",
                     onTap: () => setState(() => selectedGoal = "Gain weight"),
                   ),
                   SizedBox(width: 16),
-                  GoalCard(
+                  SelectableCard(
                     image: "lose_weight.svg",
                     goal: "Lose weight",
                     isSelected: selectedGoal == "Lose weight",

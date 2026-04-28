@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:neutrilift/views/plan/automatic/widgets/days_card.dart';
 import 'package:neutrilift/views/plan/automatic/widgets/review_card.dart';
 
 class ReviewPlanView extends StatelessWidget {
@@ -42,7 +43,11 @@ class ReviewPlanView extends StatelessWidget {
                     ReviewCard(label: 'Duration', value: '12 Weeks'),
                     ReviewCard(label: 'Goal', value: 'Lose weight'),
                     ReviewCard(label: 'Weekly Workouts', value: '5 sessions'),
-                    ReviewCard(label: 'Weight to lose', value: '10 kg'),
+                    ReviewCard(
+                      label: 'Weight to lose',
+                      value: '10 kg',
+                      isEdit: true,
+                    ),
                     SizedBox(height: 8.h),
                     Text(
                       "Plan duration depend on weight you want to lose and number of session per week",

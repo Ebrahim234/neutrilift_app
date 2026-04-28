@@ -39,7 +39,7 @@ class _DetailsViewState extends State<DetailsView> {
 
     try {
       final response = await dio.post(
-        "api/userprofile/",
+        "/api/userprofile/",
         data: {
           "height": double.tryParse(heightController.text) ?? 0,
           "weight": double.tryParse(weightController.text) ?? 0,

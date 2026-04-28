@@ -40,7 +40,7 @@ class _RegisterViewState extends State<RegisterView> {
 
     try {
       final response = await dio.post(
-        "api/signup/",
+        "/api/signup/",
         data: {
           "email": emailController.text.trim(),
           "password1": password1Controller.text.trim(),

@@ -4,7 +4,7 @@ import 'package:neutrilift/views/authentication/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiHelper {
-  static const baseUrl = "https://squiggly-cheery-newton.ngrok-free.dev/";
+  static const baseUrl = "https://squiggly-cheery-newton.ngrok-free.dev";
 
   static Dio createDio() {
     final dio = Dio(
@@ -22,9 +22,9 @@ class ApiHelper {
         onRequest: (options, handler) async {
           // ✅ متحطش token بس في login و signup
           final isAuthRequest =
-              options.path.contains('api/token/') ||
-                  options.path.contains('api/register/') ||
-                  options.path.contains('api/login/');
+              options.path.contains('/api/token/') ||
+                  options.path.contains('/api/register/') ||
+                  options.path.contains('/api/login/');
           if (!isAuthRequest) {
             final prefs = await SharedPreferences.getInstance();
             final token =
@@ -85,7 +85,7 @@ class ApiHelper {
                     },
                   ),
                 ).post(
-                  "api/token/refresh/",
+                  "/api/token/refresh/",
                   data: {"refresh": refreshToken},
                 );
 
