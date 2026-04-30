@@ -6,8 +6,7 @@ import 'package:neutrilift/core/logic/helper_method.dart';
 import 'package:neutrilift/core/ui/app_back.dart';
 import 'package:neutrilift/core/ui/app_button.dart';
 import 'package:neutrilift/models/routine_model.dart';
-import 'package:neutrilift/views/home/pages/view.dart';
-import '../../home/pages/home_page/view.dart';
+import 'package:neutrilift/views/home/pages/view.dart'; // ✅ HomeView
 import 'widgets/calorie_paginator.dart';
 import 'widgets/review_day_card.dart';
 import 'widgets/review_summary_card.dart';
@@ -17,6 +16,7 @@ class CustomReviewPlanView extends StatefulWidget {
   final int weekCount;
   final List<Map<String, dynamic>> weeksCalories;
   final Map<int, RoutineModel> assignedDays;
+  final List<RoutineModel> savedRoutines; // ✅ مطلوب لبناء الـ groups
   final List<Map<String, dynamic>> groupsDays;
 
   const CustomReviewPlanView({
@@ -24,6 +24,7 @@ class CustomReviewPlanView extends StatefulWidget {
     required this.weekCount,
     required this.weeksCalories,
     required this.assignedDays,
+    required this.savedRoutines,
     required this.groupsDays,
   });
 
@@ -44,25 +45,28 @@ class _CustomReviewPlanViewState extends State<CustomReviewPlanView> {
   Future<void> _savePlan() async {
     setState(() => isLoading = true);
     try {
-      final routines = widget.assignedDays.values.toSet().toList();
+      // ✅ نبني الـ groups من الـ savedRoutines (بدون تكرار)
+      final uniqueRoutines = widget.savedRoutines.toSet().toList();
 
       await dio.post('/api/plans/', data: {
         'duration': widget.weekCount,
         'type': 'M',
         'weeks_calories': widget.weeksCalories,
-        'groups': routines.map((r) => {
+        'groups': uniqueRoutines
+            .map((r) => {
           'name': r.name,
           'exercises': r.exercises
               .asMap()
               .entries
-              .map((e) => e.value.toJson(order: e.key + 1))  // ✅ order 1-based
+              .map((e) => e.value.toJson(order: e.key + 1)) // ✅ order 1-based
               .toList(),
-        }).toList(),
+        })
+            .toList(),
         'groups_days': widget.groupsDays,
       });
 
       showMsg('Plan saved successfully! 🎉');
-      goTo(const HomeView());  // ✅ مش HomePageView
+      goTo(const HomeView()); // ✅ HomeView مش HomePageView
     } on DioException catch (e) {
       showMsg(
         e.response?.data?['detail'] ?? 'Failed to save plan',
@@ -97,8 +101,7 @@ class _CustomReviewPlanViewState extends State<CustomReviewPlanView> {
                     ),
                     Text(
                       'Everything looks good? Save and start training!',
-                      style: TextStyle(
-                          color: Colors.grey, fontSize: 13.sp),
+                      style: TextStyle(color: Colors.grey, fontSize: 13.sp),
                     ),
                     SizedBox(height: 16.h),
 
@@ -171,7 +174,7 @@ class _CustomReviewPlanViewState extends State<CustomReviewPlanView> {
             Padding(
               padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 16.h),
               child: AppButton(
-                title: 'Next',
+                title: 'Save Plan',
                 width: double.infinity,
                 isLoading: isLoading,
                 onPressed: _savePlan,

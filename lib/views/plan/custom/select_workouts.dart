@@ -7,19 +7,21 @@ import 'package:neutrilift/core/ui/app_back.dart';
 import 'package:neutrilift/core/ui/app_button.dart';
 import 'package:neutrilift/models/exercise_model.dart';
 import 'package:neutrilift/models/routine_model.dart';
+import 'build_weekly_plan.dart';
 import 'widgets/exercise_card.dart';
 import 'widgets/muscle_filter_chips.dart';
 import 'widgets/save_routine_dialog.dart';
-import 'build_weekly_plan.dart';
 
 class SelectWorkoutsView extends StatefulWidget {
   final int weekCount;
   final List<Map<String, dynamic>> weeksCalories;
+  final List<RoutineModel> existingRoutines; // ✅ استقبال الـ routines الموجودة
 
   const SelectWorkoutsView({
     super.key,
     required this.weekCount,
     required this.weeksCalories,
+    this.existingRoutines = const [], // ✅ default فاضي
   });
 
   @override
@@ -37,11 +39,12 @@ class _SelectWorkoutsViewState extends State<SelectWorkoutsView> {
 
   int? expandedIndex;
   final Map<int, ExerciseModel> addedExercises = {};
-  final List<RoutineModel> savedRoutines = [];
+  late final List<RoutineModel> savedRoutines; // ✅ late لأننا بنبدأ بالموجود
 
   @override
   void initState() {
     super.initState();
+    savedRoutines = List.from(widget.existingRoutines); // ✅ نبدأ بالموجود
     _fetchMuscles();
     _fetchExercises();
   }
@@ -77,7 +80,8 @@ class _SelectWorkoutsViewState extends State<SelectWorkoutsView> {
         exercises = list;
         isLoading = false;
       });
-    } catch (_) {
+    } catch (e) {
+      print('❌ ERROR: $e'); // ✅ اطبع الـ error
       setState(() => isLoading = false);
     }
   }
@@ -112,21 +116,26 @@ class _SelectWorkoutsViewState extends State<SelectWorkoutsView> {
     );
   }
 
-  Future<void> _saveRoutine(String name) async {
+  void _saveRoutine(String name) {
     final exercisesList = addedExercises.values.toList();
-
-    final routine = RoutineModel(
-      name: name,
-      exercises: exercisesList,
-    );
+    final routine = RoutineModel(name: name, exercises: exercisesList);
 
     setState(() {
       savedRoutines.add(routine);
       addedExercises.clear();
     });
 
-    // ✅ بدل goTo — بنرجع الـ savedRoutines للـ screen السابقة
-    Navigator.pop(context, savedRoutines);
+    // ✅ pushReplacement عشان يروح لـ BuildWeeklyPlanView
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BuildWeeklyPlanView(
+          weekCount: widget.weekCount,
+          weeksCalories: widget.weeksCalories,
+          savedRoutines: savedRoutines,
+        ),
+      ),
+    );
   }
 
   @override

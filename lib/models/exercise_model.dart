@@ -69,8 +69,8 @@ class ExerciseModel {
 
   Map<String, dynamic> toJson({int order = 1}) {
     final map = <String, dynamic>{
-      'exercise': id,   // ✅ مش 'id'
-      'order': order,   // ✅ مطلوب من الباك اند
+      'exercise': id,  // ✅ مش 'id'
+      'order': order,  // ✅ مطلوب من الباك اند
     };
     if (hasWeight) map['weight'] = weight ?? 0;
     if (hasSets) map['sets'] = sets ?? 0;
