@@ -18,6 +18,7 @@ class CounterWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      height: 36.h,
       decoration: BoxDecoration(
         color: const Color(0xffF3F4F6),
         borderRadius: BorderRadius.circular(10.r),
@@ -25,15 +26,23 @@ class CounterWidget extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(
-            onPressed: value > min ? () => onChanged(value - 1) : null,
-            icon: const Icon(Icons.remove),
-            iconSize: 18.sp,
-            padding: EdgeInsets.symmetric(horizontal: 8.w),
-            constraints: const BoxConstraints(),
+          // ✅ GestureDetector بدل IconButton — مفيش constraints مشاكل
+          GestureDetector(
+            onTap: value > min ? () => onChanged(value - 1) : null,
+            child: Container(
+              width: 36.w,
+              height: 36.h,
+              alignment: Alignment.center,
+              child: Icon(
+                Icons.remove,
+                size: 18.sp,
+                color: value > min ? const Color(0xff173272) : Colors.grey,
+              ),
+            ),
           ),
+
           SizedBox(
-            width: 28.w,
+            width: 32.w,
             child: Text(
               '$value',
               textAlign: TextAlign.center,
@@ -43,12 +52,19 @@ class CounterWidget extends StatelessWidget {
               ),
             ),
           ),
-          IconButton(
-            onPressed: value < max ? () => onChanged(value + 1) : null,
-            icon: const Icon(Icons.add),
-            iconSize: 18.sp,
-            padding: EdgeInsets.symmetric(horizontal: 8.w),
-            constraints: const BoxConstraints(),
+
+          GestureDetector(
+            onTap: value < max ? () => onChanged(value + 1) : null,
+            child: Container(
+              width: 36.w,
+              height: 36.h,
+              alignment: Alignment.center,
+              child: Icon(
+                Icons.add,
+                size: 18.sp,
+                color: value < max ? const Color(0xff173272) : Colors.grey,
+              ),
+            ),
           ),
         ],
       ),

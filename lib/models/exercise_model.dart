@@ -4,13 +4,11 @@ class ExerciseModel {
   final String image;
   final String? muscle;
 
-  // which attributes this exercise supports (null = not supported)
   final bool hasWeight;
   final bool hasSets;
   final bool hasReps;
   final bool hasDuration;
 
-  // user-filled values
   final int? weight;
   final int? sets;
   final int? reps;
@@ -41,6 +39,9 @@ class ExerciseModel {
       hasSets: json['sets'] != null,
       hasReps: json['reps'] != null,
       hasDuration: json['duration'] != null,
+      duration: json['duration'] != null
+          ? double.parse(json['duration'].toString()).toInt()
+          : null,
     );
   }
 
@@ -66,12 +67,15 @@ class ExerciseModel {
     );
   }
 
-  Map<String, dynamic> toJson() {
-    final map = <String, dynamic>{'id': id};
+  Map<String, dynamic> toJson({int order = 1}) {
+    final map = <String, dynamic>{
+      'exercise': id,   // ✅ مش 'id'
+      'order': order,   // ✅ مطلوب من الباك اند
+    };
     if (hasWeight) map['weight'] = weight ?? 0;
     if (hasSets) map['sets'] = sets ?? 0;
     if (hasReps) map['reps'] = reps ?? 0;
-    if (hasDuration) map['duration'] = duration ?? 0;
+    if (hasDuration) map['duration'] = (duration ?? 0).toDouble().toString();
     return map;
   }
 }

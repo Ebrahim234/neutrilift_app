@@ -54,7 +54,7 @@ class _SelectWorkoutsViewState extends State<SelectWorkoutsView> {
 
   Future<void> _fetchMuscles() async {
     try {
-      final res = await dio.get('api/muscles/');
+      final res = await dio.get('/api/muscles/');
       final list = (res.data as List).map((e) => e.toString()).toList();
       setState(() => muscles = ['All', ...list]);
     } catch (_) {}
@@ -68,7 +68,7 @@ class _SelectWorkoutsViewState extends State<SelectWorkoutsView> {
       if (muscle != null && muscle != 'All') params['muscle'] = muscle;
 
       final res =
-      await dio.get('api/exercises/', queryParameters: params);
+      await dio.get('/api/exercises/', queryParameters: params);
       final list = (res.data as List)
           .map((e) => ExerciseModel.fromJson(e as Map<String, dynamic>))
           .toList();
@@ -113,50 +113,20 @@ class _SelectWorkoutsViewState extends State<SelectWorkoutsView> {
   }
 
   Future<void> _saveRoutine(String name) async {
-    try {
-      final exercisesList = addedExercises.values.toList();
+    final exercisesList = addedExercises.values.toList();
 
-      print('📤 POST api/groups/ → name: $name, exercises: ${exercisesList.map((e) => e.toJson()).toList()}');
+    final routine = RoutineModel(
+      name: name,
+      exercises: exercisesList,
+    );
 
-      final res = await dio.post('api/groups/', data: {
-        'name': name,
-        'exercises': exercisesList.map((e) => e.toJson()).toList(),
-      });
+    setState(() {
+      savedRoutines.add(routine);
+      addedExercises.clear();
+    });
 
-      print('✅ groups response: ${res.data}');
-
-      // handle id as int or string safely
-      final rawId = res.data['id'];
-      final id = rawId is int ? rawId : int.parse(rawId.toString());
-
-      final routine = RoutineModel(
-        id: id,
-        name: name,
-        exercises: exercisesList,
-      );
-
-      setState(() {
-        savedRoutines.add(routine);
-        addedExercises.clear();
-      });
-
-      showMsg('Routine "$name" saved!');
-
-      goTo(
-        BuildWeeklyPlanView(
-          weekCount: widget.weekCount,
-          weeksCalories: widget.weeksCalories,
-          savedRoutines: savedRoutines,
-        ),
-        canPop: true,
-      );
-    } on DioException catch (e) {
-      print('🔴 groups error: ${e.response?.statusCode} → ${e.response?.data}');
-      showMsg(
-        e.response?.data?['detail'] ?? 'Failed to save routine',
-        isError: true,
-      );
-    }
+    // ✅ بدل goTo — بنرجع الـ savedRoutines للـ screen السابقة
+    Navigator.pop(context, savedRoutines);
   }
 
   @override
@@ -199,8 +169,7 @@ class _SelectWorkoutsViewState extends State<SelectWorkoutsView> {
                       decoration: InputDecoration(
                         hintText: 'Search exercises...',
                         hintStyle: TextStyle(
-                            color: const Color(0xff9CA3AF),
-                            fontSize: 14.sp),
+                            color: const Color(0xff9CA3AF), fontSize: 14.sp),
                         prefixIcon: const Icon(Icons.search,
                             color: Color(0xff9CA3AF)),
                         contentPadding: EdgeInsets.symmetric(
@@ -230,8 +199,8 @@ class _SelectWorkoutsViewState extends State<SelectWorkoutsView> {
                   ? Center(
                 child: Text(
                   'No exercises found',
-                  style: TextStyle(
-                      color: Colors.grey, fontSize: 14.sp),
+                  style:
+                  TextStyle(color: Colors.grey, fontSize: 14.sp),
                 ),
               )
                   : ListView.separated(

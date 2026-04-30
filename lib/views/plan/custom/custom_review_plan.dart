@@ -44,15 +44,25 @@ class _CustomReviewPlanViewState extends State<CustomReviewPlanView> {
   Future<void> _savePlan() async {
     setState(() => isLoading = true);
     try {
-      await dio.post('api/plans/', data: {
+      final routines = widget.assignedDays.values.toSet().toList();
+
+      await dio.post('/api/plans/', data: {
         'duration': widget.weekCount,
         'type': 'M',
         'weeks_calories': widget.weeksCalories,
+        'groups': routines.map((r) => {
+          'name': r.name,
+          'exercises': r.exercises
+              .asMap()
+              .entries
+              .map((e) => e.value.toJson(order: e.key + 1))  // ✅ order 1-based
+              .toList(),
+        }).toList(),
         'groups_days': widget.groupsDays,
       });
 
       showMsg('Plan saved successfully! 🎉');
-      goTo(const HomePageView());
+      goTo(const HomeView());  // ✅ مش HomePageView
     } on DioException catch (e) {
       showMsg(
         e.response?.data?['detail'] ?? 'Failed to save plan',

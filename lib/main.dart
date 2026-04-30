@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:neutrilift/views/home/pages/home_page/view.dart';
 import 'package:neutrilift/views/plan/automatic/pages/generating_plan.dart';
 import 'package:neutrilift/views/plan/automatic/pages/review_plan.dart';
+import 'package:neutrilift/views/plan/custom/build_weekly_plan.dart';
+import 'package:neutrilift/views/plan/custom/custom_lifestyle_details.dart';
 
 import 'core/logic/helper_method.dart';
 
@@ -65,7 +68,7 @@ class MyApp extends StatelessWidget {
               ),
             ),
           ),
-          home:ReviewPlanView(),
+          home:CustomLifestyleDetailsView(),
         );
       },
     );
