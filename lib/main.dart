@@ -7,6 +7,7 @@ import 'package:neutrilift/views/plan/custom/build_weekly_plan.dart';
 import 'package:neutrilift/views/plan/custom/custom_lifestyle_details.dart';
 
 import 'core/logic/helper_method.dart';
+import 'models/routine_model.dart';
 
 void main() {
   runApp(const MyApp());
@@ -68,7 +69,7 @@ class MyApp extends StatelessWidget {
               ),
             ),
           ),
-          home:CustomLifestyleDetailsView(),
+          home: CustomLifestyleDetailsView(),
         );
       },
     );

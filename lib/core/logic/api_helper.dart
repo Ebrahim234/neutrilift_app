@@ -42,7 +42,8 @@ class ApiHelper {
           print("🔴 ERROR MESSAGE: ${error.message}");
           print("🔴 INTERCEPTOR HIT: ${error.response?.statusCode}");
           print("🔴 RESPONSE DATA: ${error.response?.data}");
-          print("🔴 CODE: ${error.response?.data?['code']}");
+          final data = error.response?.data;
+          print("🔴 CODE: ${data is Map ? data['code'] : null}");
 
           if (error.response?.statusCode == 401) {
             final responseData = error.response?.data;

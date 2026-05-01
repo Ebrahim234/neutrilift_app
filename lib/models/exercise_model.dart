@@ -75,7 +75,7 @@ class ExerciseModel {
     if (hasWeight) map['weight'] = weight ?? 0;
     if (hasSets) map['sets'] = sets ?? 0;
     if (hasReps) map['reps'] = reps ?? 0;
-    if (hasDuration) map['duration'] = (duration ?? 0).toDouble().toString();
+    if (hasDuration) map['duration'] = (duration ?? 0).toDouble();
     return map;
   }
 }

@@ -51,18 +51,24 @@ class _CustomReviewPlanViewState extends State<CustomReviewPlanView> {
       await dio.post('/api/plans/', data: {
         'duration': widget.weekCount,
         'type': 'M',
-        'weeks_calories': widget.weeksCalories,
+        'weeks_calories': widget.weeksCalories.map((w) => {
+          'week_number': (w['week_number'] as num).toInt(),
+          'daily_intake_calories': (w['daily_intake_calories'] as num).toInt(),
+        }).toList(),
         'groups': uniqueRoutines
             .map((r) => {
           'name': r.name,
           'exercises': r.exercises
               .asMap()
               .entries
-              .map((e) => e.value.toJson(order: e.key + 1)) // ✅ order 1-based
+              .map((e) => e.value.toJson(order: e.key + 1))
               .toList(),
         })
             .toList(),
-        'groups_days': widget.groupsDays,
+        'groups_days': widget.groupsDays.map((d) => {
+          'day': (d['day'] as num).toInt(),
+          'exercise_group': d['exercise_group'],
+        }).toList(),
       });
 
       showMsg('Plan saved successfully! 🎉');

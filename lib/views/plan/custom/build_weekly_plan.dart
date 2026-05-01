@@ -77,7 +77,7 @@ class _BuildWeeklyPlanViewState extends State<BuildWeeklyPlanView> {
   List<Map<String, dynamic>> get _groupsDays => _assigned.entries
       .map((e) => {
     'day': e.key,
-    'group_name': e.value.name, // ✅
+    'exercise_group': e.value.name,
   })
       .toList();
 
