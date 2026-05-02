@@ -15,13 +15,13 @@ import 'widgets/save_routine_dialog.dart';
 class SelectWorkoutsView extends StatefulWidget {
   final int weekCount;
   final List<Map<String, dynamic>> weeksCalories;
-  final List<RoutineModel> existingRoutines; // ✅ استقبال الـ routines الموجودة
+  final List<RoutineModel> existingRoutines;
 
   const SelectWorkoutsView({
     super.key,
     required this.weekCount,
     required this.weeksCalories,
-    this.existingRoutines = const [], // ✅ default فاضي
+    this.existingRoutines = const [],
   });
 
   @override
@@ -39,12 +39,12 @@ class _SelectWorkoutsViewState extends State<SelectWorkoutsView> {
 
   int? expandedIndex;
   final Map<int, ExerciseModel> addedExercises = {};
-  late final List<RoutineModel> savedRoutines; // ✅ late لأننا بنبدأ بالموجود
+  late final List<RoutineModel> savedRoutines;
 
   @override
   void initState() {
     super.initState();
-    savedRoutines = List.from(widget.existingRoutines); // ✅ نبدأ بالموجود
+    savedRoutines = List.from(widget.existingRoutines);
     _fetchMuscles();
     _fetchExercises();
   }
@@ -60,7 +60,9 @@ class _SelectWorkoutsViewState extends State<SelectWorkoutsView> {
       final res = await dio.get('/api/muscles/');
       final list = (res.data as List).map((e) => e.toString()).toList();
       setState(() => muscles = ['All', ...list]);
-    } catch (_) {}
+    } catch (_) {
+      setState(() => muscles = ['All', 'Chest', 'Back', 'Legs', 'Arms', 'Core']);
+    }
   }
 
   Future<void> _fetchExercises({String? name, String? muscle}) async {
@@ -81,8 +83,18 @@ class _SelectWorkoutsViewState extends State<SelectWorkoutsView> {
         isLoading = false;
       });
     } catch (e) {
-      print('❌ ERROR: $e'); // ✅ اطبع الـ error
-      setState(() => isLoading = false);
+      print('❌ ERROR: $e');
+      setState(() {
+        exercises = [
+          ExerciseModel(id: 1, name: 'Bench Press', image: '', muscle: 'Chest', hasSets: true, hasReps: true, hasWeight: true),
+          ExerciseModel(id: 2, name: 'Deadlift', image: '', muscle: 'Back', hasSets: true, hasReps: true, hasWeight: true),
+          ExerciseModel(id: 3, name: 'Squats', image: '', muscle: 'Legs', hasSets: true, hasReps: true, hasWeight: true),
+          ExerciseModel(id: 4, name: 'Pull Ups', image: '', muscle: 'Back', hasSets: true, hasReps: true),
+          ExerciseModel(id: 5, name: 'Shoulder Press', image: '', muscle: 'Arms', hasSets: true, hasReps: true, hasWeight: true),
+          ExerciseModel(id: 6, name: 'Plank', image: '', muscle: 'Core', hasDuration: true),
+        ];
+        isLoading = false;
+      });
     }
   }
 
@@ -110,11 +122,27 @@ class _SelectWorkoutsViewState extends State<SelectWorkoutsView> {
     showDialog(
       context: context,
       builder: (_) => SaveRoutineDialog(
-        onAddAnotherSet: () => setState(() => addedExercises.clear()),
+        onAddAnotherSet: (name) => _saveAndAddAnother(name),
         onNext: _saveRoutine,
       ),
     );
   }
+
+
+  void _saveAndAddAnother(String name) {
+    final exercisesList = addedExercises.values.toList();
+    final routine = RoutineModel(name: name, exercises: exercisesList);
+
+    setState(() {
+      savedRoutines.add(routine);
+      addedExercises.clear(); // تفريغ التمارين المحددة عشان يختار من جديد
+      expandedIndex = null;
+    });
+
+
+    showMsg('Routine "$name" saved! You can create another one now.');
+  }
+
 
   void _saveRoutine(String name) {
     final exercisesList = addedExercises.values.toList();
@@ -125,7 +153,6 @@ class _SelectWorkoutsViewState extends State<SelectWorkoutsView> {
       addedExercises.clear();
     });
 
-    // ✅ pushReplacement عشان يروح لـ BuildWeeklyPlanView
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -166,7 +193,7 @@ class _SelectWorkoutsViewState extends State<SelectWorkoutsView> {
                   ),
                   SizedBox(height: 14.h),
 
-                  // ── Search ──────────────────────────────────
+                  //Search
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -189,7 +216,7 @@ class _SelectWorkoutsViewState extends State<SelectWorkoutsView> {
                   ),
                   SizedBox(height: 12.h),
 
-                  // ── Muscle filter chips ─────────────────────
+                  // Muscle filter chips
                   MuscleFilterChips(
                     muscles: muscles,
                     selectedMuscle: selectedMuscle,
@@ -200,7 +227,7 @@ class _SelectWorkoutsViewState extends State<SelectWorkoutsView> {
               ),
             ),
 
-            // ── Exercise list ─────────────────────────────────
+            // Exercise list
             Expanded(
               child: isLoading
                   ? const Center(child: CircularProgressIndicator())

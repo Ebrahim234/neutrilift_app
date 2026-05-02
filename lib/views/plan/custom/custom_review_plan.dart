@@ -6,7 +6,7 @@ import 'package:neutrilift/core/logic/helper_method.dart';
 import 'package:neutrilift/core/ui/app_back.dart';
 import 'package:neutrilift/core/ui/app_button.dart';
 import 'package:neutrilift/models/routine_model.dart';
-import 'package:neutrilift/views/home/pages/view.dart'; // ✅ HomeView
+import 'package:neutrilift/views/home/pages/view.dart';
 import 'widgets/calorie_paginator.dart';
 import 'widgets/review_day_card.dart';
 import 'widgets/review_summary_card.dart';
@@ -16,7 +16,7 @@ class CustomReviewPlanView extends StatefulWidget {
   final int weekCount;
   final List<Map<String, dynamic>> weeksCalories;
   final Map<int, RoutineModel> assignedDays;
-  final List<RoutineModel> savedRoutines; // ✅ مطلوب لبناء الـ groups
+  final List<RoutineModel> savedRoutines;
   final List<Map<String, dynamic>> groupsDays;
 
   const CustomReviewPlanView({
@@ -42,42 +42,178 @@ class _CustomReviewPlanViewState extends State<CustomReviewPlanView> {
     'Wednesday', 'Thursday', 'Friday',
   ];
 
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24.r),
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(24.r),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 80.w,
+                height: 80.w,
+                decoration: const BoxDecoration(
+                  color: Color(0xff22C55E),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.check_rounded,
+                  color: Colors.white,
+                  size: 40.sp,
+                ),
+              ),
+              SizedBox(height: 16.h),
+              Text(
+                'Plan Saved!',
+                style: TextStyle(
+                  fontSize: 22.sp,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xff173272),
+                ),
+              ),
+              SizedBox(height: 16.h),
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: EdgeInsets.all(12.r),
+                      decoration: BoxDecoration(
+                        color: const Color(0xffF3F4F6),
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.fitness_center_rounded,
+                                  size: 16.sp,
+                                  color: const Color(0xff173272)),
+                              SizedBox(width: 4.w),
+                              Text(
+                                'Frequency',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12.sp,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 4.h),
+                          Text(
+                            '${widget.assignedDays.length} days/week',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14.sp,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: Container(
+                      padding: EdgeInsets.all(12.r),
+                      decoration: BoxDecoration(
+                        color: const Color(0xffF3F4F6),
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.calendar_month_rounded,
+                                  size: 16.sp,
+                                  color: const Color(0xff173272)),
+                              SizedBox(width: 4.w),
+                              Text(
+                                'Duration',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12.sp,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 4.h),
+                          Text(
+                            '${widget.weekCount} weeks',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14.sp,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 20.h),
+              AppButton(
+                title: 'Back to Homepage',
+                width: double.infinity,
+                onPressed: () {
+                  Navigator.pop(context);
+                  goTo(const HomeView());
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _savePlan() async {
     setState(() => isLoading = true);
     try {
-      // ✅ نبني الـ groups من الـ savedRoutines (بدون تكرار)
       final uniqueRoutines = widget.savedRoutines.toSet().toList();
 
-      await dio.post('/api/plans/', data: {
+      final data = <String, dynamic>{
         'duration': widget.weekCount,
         'type': 'M',
         'weeks_calories': widget.weeksCalories.map((w) => {
           'week_number': (w['week_number'] as num).toInt(),
           'daily_intake_calories': (w['daily_intake_calories'] as num).toInt(),
         }).toList(),
-        'groups': uniqueRoutines
-            .map((r) => {
+        'groups_days': widget.groupsDays,
+      };
+
+      if (uniqueRoutines.isNotEmpty) {
+        data['groups'] = uniqueRoutines.map((r) => {
           'name': r.name,
           'exercises': r.exercises
               .asMap()
               .entries
               .map((e) => e.value.toJson(order: e.key + 1))
               .toList(),
-        })
-            .toList(),
-        'groups_days': widget.groupsDays.map((d) => {
-          'day': (d['day'] as num).toInt(),
-          'exercise_group': d['exercise_group'],
-        }).toList(),
-      });
+        }).toList();
+      }
 
-      showMsg('Plan saved successfully! 🎉');
-      goTo(const HomeView()); // ✅ HomeView مش HomePageView
+      await dio.post('/api/plans/', data: data);
+
+      _showSuccessDialog(); // ✅
     } on DioException catch (e) {
-      showMsg(
-        e.response?.data?['detail'] ?? 'Failed to save plan',
-        isError: true,
-      );
+      String errorMessage = 'Failed to save plan';
+
+      if (e.response?.data != null) {
+        if (e.response!.data is Map) {
+          errorMessage = e.response!.data['detail'] ?? errorMessage;
+        } else if (e.response!.data is List && e.response!.data.isNotEmpty) {
+          errorMessage = e.response!.data[0].toString();
+        }
+      }
+
+      showMsg(errorMessage, isError: true);
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -111,14 +247,12 @@ class _CustomReviewPlanViewState extends State<CustomReviewPlanView> {
                     ),
                     SizedBox(height: 16.h),
 
-                    // ── Summary card ──────────────────────────
                     ReviewSummaryCard(
                       weekCount: widget.weekCount,
                       workoutDays: widget.assignedDays.length,
                     ),
                     SizedBox(height: 16.h),
 
-                    // ── Assign Workouts section ───────────────
                     Row(
                       children: [
                         const Expanded(
@@ -144,7 +278,6 @@ class _CustomReviewPlanViewState extends State<CustomReviewPlanView> {
                     ),
                     SizedBox(height: 16.h),
 
-                    // ── Calorie target section ────────────────
                     Row(
                       children: [
                         const Expanded(
@@ -176,7 +309,6 @@ class _CustomReviewPlanViewState extends State<CustomReviewPlanView> {
               ),
             ),
 
-            // ── Save button ───────────────────────────────────
             Padding(
               padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 16.h),
               child: AppButton(

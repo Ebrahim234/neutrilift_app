@@ -31,14 +31,17 @@ class ExerciseModel {
 
   factory ExerciseModel.fromJson(Map<String, dynamic> json) {
     return ExerciseModel(
-      id: json['id'],
-      name: json['name'] ?? '',
+      id: json['id'] ?? json['exercise'] ?? 0,
+      name: json['name'] ?? 'Unknown Exercise',
       image: json['image'] ?? '',
       muscle: json['muscle'],
       hasWeight: json['weight'] != null,
       hasSets: json['sets'] != null,
       hasReps: json['reps'] != null,
       hasDuration: json['duration'] != null,
+      weight: json['weight'] != null ? double.parse(json['weight'].toString()).toInt() : null,
+      sets: json['sets'] != null ? double.parse(json['sets'].toString()).toInt() : null,
+      reps: json['reps'] != null ? double.parse(json['reps'].toString()).toInt() : null,
       duration: json['duration'] != null
           ? double.parse(json['duration'].toString()).toInt()
           : null,
@@ -69,8 +72,8 @@ class ExerciseModel {
 
   Map<String, dynamic> toJson({int order = 1}) {
     final map = <String, dynamic>{
-      'exercise': id,  // ✅ مش 'id'
-      'order': order,  // ✅ مطلوب من الباك اند
+      'exercise': id,
+      'order': order,
     };
     if (hasWeight) map['weight'] = weight ?? 0;
     if (hasSets) map['sets'] = sets ?? 0;

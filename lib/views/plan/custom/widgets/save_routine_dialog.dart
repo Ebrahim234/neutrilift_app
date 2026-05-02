@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class SaveRoutineDialog extends StatefulWidget {
-  final VoidCallback onAddAnotherSet;
+  final ValueChanged<String> onAddAnotherSet;
   final ValueChanged<String> onNext;
 
   const SaveRoutineDialog({
@@ -89,8 +89,11 @@ class _SaveRoutineDialogState extends State<SaveRoutineDialog> {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () {
+                      final name = nameController.text.trim();
+                      if (name.isEmpty) return;
+
                       Navigator.pop(context);
-                      widget.onAddAnotherSet();
+                      widget.onAddAnotherSet(name);
                     },
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Color(0xffE5E7EB)),

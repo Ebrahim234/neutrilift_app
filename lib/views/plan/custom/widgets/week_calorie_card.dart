@@ -50,12 +50,12 @@ class _WeekCalorieCardState extends State<WeekCalorieCard> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Main row ─────────────────────────────────────────
+          //Main row
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
             child: Row(
               children: [
-                // week label — بيظهر دايماً
+                // week label
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -78,7 +78,6 @@ class _WeekCalorieCardState extends State<WeekCalorieCard> {
 
                 const Spacer(),
 
-                // ✅ copy + input + kcal في Row واحد
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -144,7 +143,7 @@ class _WeekCalorieCardState extends State<WeekCalorieCard> {
             ),
           ),
 
-          // ── Expanded section — تحت الـ main row مباشرةً ──────
+          // Expanded section
           if (_isExpanded && widget.showCopyButton) ...[
             Divider(height: 1, color: Colors.grey.shade100),
             Padding(
@@ -188,7 +187,7 @@ class _WeekCalorieCardState extends State<WeekCalorieCard> {
                         },
                         style: FilledButton.styleFrom(
                           backgroundColor: const Color(0xff173272),
-                          minimumSize: Size(80.w, 38.h), // ✅ width + height صريحين
+                          minimumSize: Size(80.w, 38.h),
                           padding: EdgeInsets.symmetric(horizontal: 16.w),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10.r),

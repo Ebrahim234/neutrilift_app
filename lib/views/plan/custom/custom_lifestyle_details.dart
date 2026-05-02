@@ -1,12 +1,16 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:neutrilift/core/logic/api_helper.dart';
 import 'package:neutrilift/core/logic/helper_method.dart';
 import 'package:neutrilift/core/ui/app_back.dart';
 import 'package:neutrilift/core/ui/app_button.dart';
+import 'package:neutrilift/models/routine_model.dart';
 import 'widgets/section_header.dart';
 import 'widgets/week_calorie_card.dart';
 import 'widgets/white_input.dart';
 import 'select_workouts.dart';
+import 'build_weekly_plan.dart';
 
 class CustomLifestyleDetailsView extends StatefulWidget {
   const CustomLifestyleDetailsView({super.key});
@@ -19,8 +23,11 @@ class CustomLifestyleDetailsView extends StatefulWidget {
 class _CustomLifestyleDetailsViewState
     extends State<CustomLifestyleDetailsView> {
   final weeksController = TextEditingController();
+  final dio = ApiHelper.createDio();
+
   int weekCount = 0;
   List<TextEditingController> calorieControllers = [];
+  bool isCheckingRoutines = false;
 
   @override
   void dispose() {
@@ -74,6 +81,45 @@ class _CustomLifestyleDetailsViewState
     },
   );
 
+
+  Future<void> _checkRoutinesAndNavigate() async {
+    setState(() => isCheckingRoutines = true);
+
+    try {
+      final response = await dio.get('/api/groups/');
+
+      print('🔴 ROUTINES DATA FROM SERVER: ${response.data}');
+
+      final List<RoutineModel> fetchedRoutines = (response.data as List)
+          .map((e) => RoutineModel.fromJson(e as Map<String, dynamic>))
+          .toList();
+
+      if (fetchedRoutines.isNotEmpty) {
+        goTo(
+          BuildWeeklyPlanView(
+            weekCount: weekCount,
+            weeksCalories: _weeksCalories,
+            savedRoutines: fetchedRoutines,
+          ),
+          canPop: true,
+        );
+      } else {
+        goTo(
+          SelectWorkoutsView(
+            weekCount: weekCount,
+            weeksCalories: _weeksCalories,
+            existingRoutines: fetchedRoutines,
+          ),
+          canPop: true,
+        );
+      }
+    } on DioException catch (e) {
+      showMsg('Failed to fetch your routines', isError: true);
+    } finally {
+      if (mounted) setState(() => isCheckingRoutines = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -97,7 +143,6 @@ class _CustomLifestyleDetailsViewState
                       ),
                     ),
                     SizedBox(height: 20.h),
-
                     const SectionHeader(label: 'Plan Duration'),
                     SizedBox(height: 10.h),
                     WhiteInput(
@@ -107,7 +152,6 @@ class _CustomLifestyleDetailsViewState
                       onChanged: _onWeeksChanged,
                     ),
                     SizedBox(height: 16.h),
-
                     if (weekCount > 0) ...[
                       const SectionHeader(
                           label: 'Your daily calorie target per week'),
@@ -132,21 +176,13 @@ class _CustomLifestyleDetailsViewState
                 ),
               ),
             ),
-
             Padding(
               padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 16.h),
               child: AppButton(
                 title: 'Next',
                 width: double.infinity,
-                onPressed: _isValid
-                    ? () => goTo(
-                  SelectWorkoutsView(
-                    weekCount: weekCount,
-                    weeksCalories: _weeksCalories,
-                  ),
-                  canPop: true,
-                )
-                    : null,
+                isLoading: isCheckingRoutines,
+                onPressed: _isValid ? _checkRoutinesAndNavigate : null,
               ),
             ),
           ],

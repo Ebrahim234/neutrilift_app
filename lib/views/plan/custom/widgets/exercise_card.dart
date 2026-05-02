@@ -49,7 +49,7 @@ class ExerciseCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // ── Main row ────────────────────────────────────────
+          // Main row
           Padding(
             padding: EdgeInsets.all(12.r),
             child: Row(
@@ -136,7 +136,7 @@ class ExerciseCard extends StatelessWidget {
             ),
           ),
 
-          // ── Expanded config ──────────────────────────────────
+          // Expanded config
           if (isExpanded) ...[
             Divider(height: 1, color: Colors.grey.shade100),
             Padding(

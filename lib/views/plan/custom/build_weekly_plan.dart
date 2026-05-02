@@ -8,7 +8,7 @@ import 'widgets/day_assign_card.dart';
 import 'widgets/load_preset_sheet.dart';
 import 'widgets/section_header.dart';
 import 'custom_review_plan.dart';
-import 'select_workouts.dart';
+
 
 class BuildWeeklyPlanView extends StatefulWidget {
   final int weekCount;
@@ -32,13 +32,13 @@ class _BuildWeeklyPlanViewState extends State<BuildWeeklyPlanView> {
     'Wednesday', 'Thursday', 'Friday',
   ];
 
-  late List<RoutineModel> _savedRoutines; // ✅ mutable local copy
+  late List<RoutineModel> _savedRoutines;
   final Map<int, RoutineModel> _assigned = {};
 
   @override
   void initState() {
     super.initState();
-    _savedRoutines = List.from(widget.savedRoutines); // ✅ نبدأ بالـ routines الموجودة
+    _savedRoutines = List.from(widget.savedRoutines);
   }
 
   void _showLoadPreset(int dayNumber) {
@@ -56,30 +56,20 @@ class _BuildWeeklyPlanViewState extends State<BuildWeeklyPlanView> {
     );
   }
 
-  // ✅ فتح SelectWorkoutsView وانتظار الـ result
-  Future<void> _goToSelectWorkouts() async {
-    final result = await Navigator.push<List<RoutineModel>>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => SelectWorkoutsView(
-          weekCount: widget.weekCount,
-          weeksCalories: widget.weeksCalories,
-          existingRoutines: _savedRoutines, // ✅ نبعت الموجود
-        ),
-      ),
-    );
-
-    if (result != null && result.isNotEmpty) {
-      setState(() => _savedRoutines = result); // ✅ نحدث الـ routines
-    }
-  }
-
   List<Map<String, dynamic>> get _groupsDays => _assigned.entries
-      .map((e) => {
-    'day': e.key,
-    'exercise_group': e.value.name,
-  })
-      .toList();
+      .map((e) {
+    if (e.value.id != null) {
+      return {
+        'day': e.key,
+        'exercise_group': e.value.id,
+      };
+    } else {
+      return {
+        'day': e.key,
+        'group_name': e.value.name,
+      };
+    }
+  }).toList();
 
   @override
   Widget build(BuildContext context) {
@@ -109,25 +99,10 @@ class _BuildWeeklyPlanViewState extends State<BuildWeeklyPlanView> {
                     ),
                     SizedBox(height: 16.h),
 
-                    // ✅ زرار لإضافة routine جديدة
-                    Row(
-                      children: [
-                        Expanded( // ✅ لف SectionHeader في Expanded
-                          child: SectionHeader(label: 'Assign Workouts'),
-                        ),
-                        TextButton.icon(
-                          onPressed: _goToSelectWorkouts,
-                          icon: const Icon(Icons.add, size: 18, color: Color(0xff173272)),
-                          label: Text(
-                            'Add Routine',
-                            style: TextStyle(color: const Color(0xff173272), fontSize: 13.sp),
-                          ),
-                        ),
-                      ],
-                    ),
+                    const SectionHeader(label: 'Assign Workouts'),
                     SizedBox(height: 12.h),
 
-                    // ── Day cards ─────────────────────────────
+                    // Day cards
                     ...List.generate(
                       7,
                           (i) => Padding(
@@ -144,7 +119,7 @@ class _BuildWeeklyPlanViewState extends State<BuildWeeklyPlanView> {
               ),
             ),
 
-            // ── Next button ───────────────────────────────────
+            //Next button
             Padding(
               padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 16.h),
               child: AppButton(
@@ -155,7 +130,7 @@ class _BuildWeeklyPlanViewState extends State<BuildWeeklyPlanView> {
                     weekCount: widget.weekCount,
                     weeksCalories: widget.weeksCalories,
                     assignedDays: _assigned,
-                    savedRoutines: _savedRoutines, // ✅ نبعت الـ routines
+                    savedRoutines: _savedRoutines,
                     groupsDays: _groupsDays,
                   ),
                   canPop: true,
