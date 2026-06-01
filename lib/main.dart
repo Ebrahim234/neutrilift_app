@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:neutrilift/views/home/pages/view.dart';
-import 'package:neutrilift/views/logging/pages/meal_logging.dart';
-
+import 'package:neutrilift/views/splash.dart';
 import 'core/logic/helper_method.dart';
 
 void main() {
@@ -65,7 +63,7 @@ class MyApp extends StatelessWidget {
               ),
             ),
           ),
-          home:HomeView(),
+          home:SplashView(),
         );
       },
     );

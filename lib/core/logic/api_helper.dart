@@ -40,13 +40,17 @@ class ApiHelper {
         },
 
         onError: (error, handler) async {
+          print("🔴 ERROR TYPE: ${error.type}");
+          print("🔴 ERROR MESSAGE: ${error.message}");
           print("🔴 INTERCEPTOR HIT: ${error.response?.statusCode}");
-          print("🔴 CODE: ${error.response?.data?['code']}");
+          print("🔴 RESPONSE DATA: ${error.response?.data}");
+          final data = error.response?.data;
+          print("🔴 CODE: ${data is Map ? data['code'] : null}");
 
           if (error.response?.statusCode == 401) {
             final responseData = error.response?.data;
 
-            if (responseData is Map &&
+            if (responseData is Map<String, dynamic> &&
                 responseData['code'] == 'not_authenticated') {
               print("🔴 NOT AUTHENTICATED → goTo Login");
               goTo(LoginView());
