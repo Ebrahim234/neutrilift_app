@@ -3,6 +3,7 @@ import 'package:neutrilift/core/ui/app_image.dart';
 import 'package:neutrilift/views/home/pages/profile.dart';
 import 'package:neutrilift/views/home/pages/stats.dart';
 import 'package:neutrilift/views/home/pages/workouts.dart';
+import 'package:neutrilift/views/logging/view.dart';
 import '../../plan/view.dart';
 import 'home_page/view.dart';
 
@@ -17,8 +18,8 @@ class _NewHomeViewState extends State<HomeView> {
   final list = [
     _Model(icon: "home.svg", view: HomePageView(), label: "Home"),
     _Model(icon: "plans.svg", view: PlansView(), label: "Plans"),
-    _Model(icon: "workout.svg", view: WorkoutsView(), label: "Workouts"),
-    _Model(icon: "stats.svg", view: StatsView(), label: "Log"),
+      _Model(icon: "log.svg", view: LoggingView(), label: "Log"),
+    _Model(icon: "stats.svg", view: StatsView(), label: "Progress"),
     _Model(icon: "profile.svg", view: ProfileView(), label: "Profile"),
   ];
 

@@ -1,6 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:neutrilift/core/logic/helper_method.dart';
+import 'package:neutrilift/core/ui/app_button.dart';
+import 'package:neutrilift/views/home/pages/view.dart';
 import '../../../../core/ui/app_image.dart';
 
 class SuccessDialog extends StatelessWidget {
@@ -53,12 +56,17 @@ class SuccessDialog extends StatelessWidget {
               label: "Frequency",
               value: "5 days/week",
             ),
+            SizedBox(height: 12.h),
+            AppButton(title: "Back to Homepage", width: double.infinity, onPressed: () {Navigator.of(context).popUntil((route) => route.isFirst);})
           ],
         ),
       ),
     );
   }
 }
+
+
+
 
 class SavedPlanCard extends StatelessWidget {
   final String icon;

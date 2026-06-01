@@ -13,12 +13,7 @@ class AppSearch extends StatelessWidget {
         hintText: 'Search',
         suffixIcon: Padding(
           padding: EdgeInsets.all(12.w),
-          child: AppImage(
-            image: "search.svg",
-            height: 16.h,
-            width: 16.w,
-            fit: BoxFit.contain,
-          ),
+          child: Icon(Icons.search, color: Colors.grey)
         ),
       ),
     );

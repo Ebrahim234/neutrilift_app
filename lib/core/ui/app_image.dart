@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lottie/lottie.dart';
 
@@ -40,8 +41,20 @@ class AppImage extends StatelessWidget {
         height: height,
         color: color,
         fit: myFit,
-        // loadingBuilder: (context, child, loadingProgress) => Center(child: CircularProgressIndicator()),
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            width: width,
+            height: height,
+            color: Colors.grey[200],
+            child: Icon(
+              Icons.fitness_center, // أيقونة دامبل بديلة تظهر لو الصورة منزلتش كاملة
+              color: const Color(0xff1A2D6B),
+              size: 30.sp,
+            ),
+          );
+        },
       );
+
     } else if (image.endsWith(".json")) {
       child = Lottie.asset(
         "assets/lotties/$image",

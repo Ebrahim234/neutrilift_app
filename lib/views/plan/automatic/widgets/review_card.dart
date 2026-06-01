@@ -3,15 +3,18 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:neutrilift/core/ui/app_image.dart';
 
 class ReviewCard extends StatelessWidget {
+
   final String label;
   final String value;
   final bool isEdit;
+  final VoidCallback? onEdit;
 
   const ReviewCard({
     super.key,
     required this.label,
     required this.value,
     this.isEdit = false,
+    this.onEdit,
   });
 
   @override
@@ -58,7 +61,7 @@ class ReviewCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8.r),
                 ),
                 child: IconButton(
-                  onPressed: () {},
+                  onPressed: onEdit,
                   icon: AppImage(image: "edit.svg"),
                 ),
               ),

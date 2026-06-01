@@ -6,7 +6,7 @@ import 'package:neutrilift/views/home/pages/home_page/widgets/week_calender.dart
 class Workout extends StatelessWidget {
   Workout({super.key});
 
-  bool hasWorkout = false;
+  bool hasWorkout = true;
 
   @override
   Widget build(BuildContext context) {
