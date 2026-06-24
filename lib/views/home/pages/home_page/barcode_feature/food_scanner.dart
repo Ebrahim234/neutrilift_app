@@ -16,6 +16,8 @@ class _FoodScannerWidgetState extends State<FoodScannerWidget> {
   final Dio dio = ApiHelper.createDio();
   bool isLoading = false;
 
+  get BarcodeScanner => null;
+
   Future<void> _scanBarcode() async {
     try {
       var result = await BarcodeScanner.scan();
