@@ -3,7 +3,7 @@ import 'package:neutrilift/core/logic/helper_method.dart';
 import 'package:neutrilift/views/authentication/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'home/pages/view.dart';
+import 'home/pages/home main view.dart';
 
 class SplashView extends StatefulWidget {
   const SplashView({super.key});

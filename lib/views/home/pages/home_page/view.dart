@@ -7,10 +7,10 @@ import 'package:neutrilift/views/home/pages/home_page/widgets/stats_card/stat_ca
 import 'package:neutrilift/views/home/pages/home_page/widgets/stats_card/stat_card_top.dart';
 import 'package:neutrilift/views/home/pages/home_page/widgets/week_calender.dart';
 import 'package:neutrilift/views/home/pages/home_page/widgets/workout.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:neutrilift/views/home/pages/home_page/barcode_feature/food_scanner.dart';
+import '../../../../core/logic/health_service.dart';
 import 'home_controller.dart';
 import 'home_model.dart';
-import 'package:neutrilift/views/home/pages/home_page/barcode_feature/food_scanner.dart';
 
 class HomePageView extends StatefulWidget {
   const HomePageView({super.key});
@@ -20,17 +20,35 @@ class HomePageView extends StatefulWidget {
 }
 
 class _HomePageViewState extends State<HomePageView> {
-  final bool isPlanDone = false;
   final _controller = HomeController();
+  final HealthService _healthService = HealthService(); // 🚀 نسخة السيرفس الجديد
+
   int steps = 0;
-  String stepStatus = "loading";
+  int heartRate = 72; // القيمة المحدثة للنبض الديناميكي بدل القديمة الثابتة
+  HomeModel? homeData;
 
   @override
   void initState() {
     super.initState();
     _controller.checkAuth();
-    _initSteps();
     _loadHomeData();
+    _initHealthData(); // 🚀 بدء سحب بيانات الصحة من الموبايل فوراً
+  }
+
+  // 🚀 دالة جلب داتا الصحة الحقيقية من الموبايل وتحديث الشاشة أوتوماتيكياً
+  Future<void> _initHealthData() async {
+    bool authorized = await _healthService.requestPermissions();
+    if (authorized) {
+      final liveSteps = await _healthService.getTodaySteps();
+      final liveHeartRate = await _healthService.getLatestHeartRate();
+
+      if (mounted) {
+        setState(() {
+          steps = liveSteps;
+          heartRate = liveHeartRate;
+        });
+      }
+    }
   }
 
   Future<void> _loadHomeData() async {
@@ -42,34 +60,10 @@ class _HomePageViewState extends State<HomePageView> {
     }
   }
 
-  Future<void> _initSteps() async {
-    final granted = await _controller.requestPermission();
-    if (granted) {
-      _controller.startStepCounting(
-        onStep: (s) => setState(() {
-          steps = s;
-          stepStatus = "active";
-        }),
-        onError: () => setState(() => stepStatus = "error"),
-      );
-    } else {
-      setState(() => stepStatus = "denied");
-      await openAppSettings();
-    }
-  }
-
-  HomeModel? homeData;
-
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
-  }
-
-  String get stepsDisplay {
-    if (stepStatus == "loading") return "...";
-    if (stepStatus == "denied" || stepStatus == "error") return "N/A";
-    return steps.toString();
   }
 
   @override
@@ -78,12 +72,7 @@ class _HomePageViewState extends State<HomePageView> {
       backgroundColor: const Color(0xffF0F0F0),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsetsDirectional.only(
-            start: 16,
-            end: 16,
-            top: 30,
-            bottom: 60,
-          ),
+          padding: const EdgeInsetsDirectional.only(start: 16, end: 16, top: 30, bottom: 60),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -100,15 +89,14 @@ class _HomePageViewState extends State<HomePageView> {
                   const Expanded(
                     child: Text(
                       "Welcome, Ahmed",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
               ),
               SizedBox(height: 16.h),
+
+              // كارت الماكروز والإحصائيات الحية من الهاتف والسيرفر المشترك
               Container(
                 padding: const EdgeInsetsDirectional.all(16),
                 height: 192,
@@ -121,39 +109,41 @@ class _HomePageViewState extends State<HomePageView> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const StatCardTop(
+                        // 🚀 حقن نبض القلب الديناميكي الحقيقي الراجع من الهاتف هنا
+                        StatCardTop(
                           icon: "heart_rate.svg",
-                          value: 72,
+                          value: heartRate,
                           unit: "bpm",
                           label: "Heart Rate",
                         ),
+                        // 🚀 حقن خطوات اليوزر الحقيقية والمحدثة بالمللي اليوم هنا
                         StatCardTop(
                           icon: "steps.svg",
-                          value: int.tryParse(stepsDisplay) ?? 0,
+                          value: steps,
                           unit: "Today",
                           label: "Steps",
                         ),
-                        const StatCardTop(
+                        StatCardTop(
                           icon: "calorie_intake.svg",
-                          value: 1840,
+                          value: homeData?.dailyCalorieIntake ?? 0, // تغذية ديناميكية آمنة من السيرفر
                           unit: "Kcal",
                           label: "Calorie Intake",
                         ),
                       ],
                     ),
                     SizedBox(height: 8.h),
-                    const Row(
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         StatCardSide(
                           icon: "sleep.svg",
-                          value: 72,
+                          value: double.tryParse(homeData?.weeklySleepingHours ?? "0.0") ?? 0.0,
                           unit: "Hours",
                           label: "Avg Sleep",
                         ),
                         StatCardSide(
                           icon: "weight.svg",
-                          value: 78.4,
+                          value: double.tryParse(homeData?.weight ?? "0.0") ?? 0.0,
                           unit: "KG",
                           label: "Weight",
                         ),
@@ -166,13 +156,12 @@ class _HomePageViewState extends State<HomePageView> {
               if (homeData?.hasPlan == false) ...[
                 const NoPlanWidget(),
               ] else ...[
-                // تمرير الداتا للتقويم والـ Workout عشان يبقوا ديناميك 100%
                 WeekCalender(homeData: homeData),
                 SizedBox(height: 8.h),
                 Workout(),
               ],
               SizedBox(height: 8.h),
-              FoodScannerWidget(),
+              const FoodScannerWidget(),
             ],
           ),
         ),

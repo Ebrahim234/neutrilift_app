@@ -6,7 +6,7 @@ import 'package:neutrilift/core/logic/helper_method.dart';
 import 'package:neutrilift/core/ui/app_back.dart';
 import 'package:neutrilift/core/ui/app_button.dart';
 import 'package:neutrilift/models/routine_model.dart';
-import 'package:neutrilift/views/home/pages/view.dart';
+import 'package:neutrilift/views/home/pages/home main view.dart';
 import 'widgets/calorie_paginator.dart';
 import 'widgets/review_day_card.dart';
 import 'widgets/review_summary_card.dart';

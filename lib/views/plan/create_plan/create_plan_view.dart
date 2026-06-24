@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:neutrilift/core/logic/helper_method.dart';
 import 'package:neutrilift/views/plan/automatic/view.dart';
 import 'package:neutrilift/views/plan/create_plan/widget/plan_card.dart';
-
+import 'package:neutrilift/views/plan/custom/custom_lifestyle_details.dart';
 
 class CreatePlanView extends StatefulWidget {
   const CreatePlanView({super.key});
@@ -56,13 +56,13 @@ class _CreatePlanViewState extends State<CreatePlanView> {
                   onPressed: selectedPlan == null
                       ? null
                       : () {
-                    if (selectedPlan == "automatic") {
-                      goTo(AutomaticLifeStylView());
-                    }
-                    // else {
-                    //   goTo(ManualLifeStylView());
-                    // }
-                  },
+                          // 🚀 توجيه ديناميكي ذكي بناءً على اختيار اليوزر
+                          if (selectedPlan == "automatic") {
+                            goTo(const AutomaticLifeStylView());
+                          } else if (selectedPlan == "custom") {
+                            goTo(CustomLifestyleDetailsView());
+                          }
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF1E2D6E),
                     shape: RoundedRectangleBorder(

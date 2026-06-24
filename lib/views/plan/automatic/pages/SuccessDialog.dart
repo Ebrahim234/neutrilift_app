@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:neutrilift/core/logic/helper_method.dart';
 import 'package:neutrilift/core/ui/app_button.dart';
-import 'package:neutrilift/views/home/pages/view.dart';
+import 'package:neutrilift/views/home/pages/home main view.dart';
 import '../../../../core/ui/app_image.dart';
 
 class SuccessDialog extends StatelessWidget {

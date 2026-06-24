@@ -4,54 +4,29 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:neutrilift/core/logic/helper_method.dart';
 import 'package:neutrilift/core/ui/app_button.dart';
 import 'package:neutrilift/views/logging/pages/logging_success_dialog.dart';
-import 'package:neutrilift/views/logging/view.dart';
 
 class MealDetailsView extends StatelessWidget {
   final File imageFile;
-  const MealDetailsView({super.key, required this.imageFile});
+  final Map<String, dynamic> mealData; // 👈 استقبال بيانات السيرفر الحقيقية هنا
 
-  // void _showSuccessDialog(BuildContext context) {
-  //   showDialog(
-  //     context: context,
-  //     barrierDismissible: false,
-  //     builder: (context) {
-  //       return Dialog(
-  //         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
-  //         child: Padding(
-  //           padding: EdgeInsets.all(24.w),
-  //           child: Column(
-  //             mainAxisSize: MainAxisSize.min,
-  //             children: [
-  //               Container(
-  //                 padding: EdgeInsets.all(12.w),
-  //                 decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: const Color(0xFF00BFA5), width: 2)),
-  //                 child: Icon(Icons.check, color: const Color(0xFF00BFA5), size: 40.sp),
-  //               ),
-  //               SizedBox(height: 16.h),
-  //               Text(
-  //                 "Your meal has been saved!",
-  //                 style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: const Color(0xff0D1B2A)),
-  //                 textAlign: TextAlign.center,
-  //               ),
-  //               SizedBox(height: 24.h),
-  //               AppButton(
-  //                 title: "Back to Log",
-  //                 width: double.infinity,
-  //                 onPressed: () {
-  //                   // الكود ده بيقفل كل الصفحات اللي فتحناها لحد ما يوصل للصفحة الأساسية
-  //                   Navigator.of(context).popUntil((route) => route.isFirst);
-  //                 },
-  //               )
-  //             ],
-  //           ),
-  //         ),
-  //       );
-  //     },
-  //   );
-  // }
+  const MealDetailsView({
+    super.key,
+    required this.imageFile,
+    required this.mealData,
+  });
 
   @override
   Widget build(BuildContext context) {
+    // فك شفرة لستة العناصر الراجعة واستخراج أول اسم طعام تم كشفه
+    List items = mealData['items'] ?? [];
+    String mealName = items.isNotEmpty ? (items[0]['name'] ?? 'Unknown Meal') : 'Unknown Meal';
+
+    // سحب الماكروز المعتمدة بالمللي من الـ JSON الصادر من الباك إند
+    String calories = "${mealData['total_calories'] ?? 0} Kcal";
+    String protein = "${mealData['protein_g'] ?? 0}g";
+    String carbs = "${mealData['carbs_g'] ?? 0}g";
+    String fats = "${mealData['fats_g'] ?? 0}g";
+
     return Scaffold(
       backgroundColor: const Color(0xFFF3F4F6),
       appBar: AppBar(
@@ -76,15 +51,18 @@ class MealDetailsView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Grilled Chicken & Rice", style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold)),
+                    Text(
+                      mealName,
+                      style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: const Color(0xff1A2D6B)),
+                    ),
                     SizedBox(height: 16.h),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _macroItem("Fats", "95"),
-                        _macroItem("Carbs", "37"),
-                        _macroItem("Protein", "100"),
-                        _macroItem("Calories", "356"),
+                        _macroItem("Calories", calories, const Color(0xff1A2D6B)),
+                        _macroItem("Protein", protein, Colors.green),
+                        _macroItem("Carbs", carbs, Colors.orange),
+                        _macroItem("Fats", fats, Colors.red),
                       ],
                     )
                   ],
@@ -94,7 +72,9 @@ class MealDetailsView extends StatelessWidget {
               AppButton(
                 title: "Save meal",
                 width: double.infinity,
-                onPressed: () {goTo(LoggingSuccessDialog(isSleep: false));},
+                onPressed: () {
+                  goTo(const LoggingSuccessDialog(isSleep: false));
+                },
               )
             ],
           ),
@@ -103,12 +83,12 @@ class MealDetailsView extends StatelessWidget {
     );
   }
 
-  Widget _macroItem(String title, String value) {
+  Widget _macroItem(String title, String value, Color color) {
     return Column(
       children: [
         Text(title, style: TextStyle(fontSize: 12.sp, color: Colors.grey, fontWeight: FontWeight.w500)),
         SizedBox(height: 8.h),
-        Text(value, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: const Color(0xff0D1B2A))),
+        Text(value, style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold, color: color)),
       ],
     );
   }

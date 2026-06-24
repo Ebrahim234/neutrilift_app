@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:neutrilift/core/ui/app_image.dart';
-import 'package:neutrilift/views/home/pages/profile.dart';
-import 'package:neutrilift/views/home/pages/stats.dart';
-import 'package:neutrilift/views/home/pages/workouts.dart';
 import 'package:neutrilift/views/logging/view.dart';
-import '../../plan/view.dart';
 import 'home_page/view.dart';
+
+import 'package:neutrilift/views/plan/create_plan/create_plan_view.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -16,11 +14,9 @@ class HomeView extends StatefulWidget {
 
 class _NewHomeViewState extends State<HomeView> {
   final list = [
-    _Model(icon: "home.svg", view: HomePageView(), label: "Home"),
-    _Model(icon: "plans.svg", view: PlansView(), label: "Plans"),
-      _Model(icon: "log.svg", view: LoggingView(), label: "Log"),
-    _Model(icon: "stats.svg", view: StatsView(), label: "Progress"),
-    _Model(icon: "profile.svg", view: ProfileView(), label: "Profile"),
+    _Model(icon: "home.svg", view: const HomePageView(), label: "Home"),
+    _Model(icon: "plans.svg", view: CreatePlanView(), label: "Plans"),
+    _Model(icon: "log.svg", view: const LoggingView(), label: "Log"),
   ];
 
   int currentIndex = 0;
@@ -32,7 +28,7 @@ class _NewHomeViewState extends State<HomeView> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: Container(
         clipBehavior: Clip.antiAliasWithSaveLayer,
-        decoration: BoxDecoration(color: Color(0xffD9D9D9)),
+        decoration: const BoxDecoration(color: Color(0xffD9D9D9)),
         child: BottomNavigationBar(
           onTap: (value) {
             currentIndex = value;
@@ -53,16 +49,16 @@ class _NewHomeViewState extends State<HomeView> {
                 children: [
                   AppImage(
                     image: list[index].icon,
-                    color: currentIndex == index ? Color(0xff0D1F49) : Colors.grey,
+                    color: currentIndex == index ? const Color(0xff0D1F49) : Colors.grey,
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
                     list[index].label,
                     style: TextStyle(
                       fontWeight: FontWeight.w400,
                       fontSize: 10,
                       color: currentIndex == index
-                          ? Color(0xff0D1F49)
+                          ? const Color(0xff0D1F49)
                           : Colors.grey,
                     ),
                   ),

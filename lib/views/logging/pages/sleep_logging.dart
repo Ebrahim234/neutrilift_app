@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:neutrilift/core/logic/api_helper.dart';
 import 'package:neutrilift/core/logic/helper_method.dart';
 import 'package:neutrilift/core/ui/app_back.dart';
 import 'package:neutrilift/views/logging/pages/logging_success_dialog.dart';
@@ -17,7 +20,10 @@ class _SleepLoggingViewState extends State<SleepLoggingView> {
   TimeOfDay sleepTime = const TimeOfDay(hour: 23, minute: 30);
   TimeOfDay wakeTime = const TimeOfDay(hour: 11, minute: 30);
 
-  // حساب الفرق بين الوقتين
+  final Dio dio = ApiHelper.createDio();
+  bool isLoading = false; // 🚀 مؤشر تحميل لحماية الزرار أثناء الريكويست
+
+  // حساب الفرق بين الوقتين بدقة
   double _calculateDuration() {
     double sleepDouble = sleepTime.hour + (sleepTime.minute / 60.0);
     double wakeDouble = wakeTime.hour + (wakeTime.minute / 60.0);
@@ -33,7 +39,7 @@ class _SleepLoggingViewState extends State<SleepLoggingView> {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: isSleep ? sleepTime : wakeTime,
-      initialEntryMode: TimePickerEntryMode.input, // هذا السطر يحول الشكل لصورة image_b1a5be.png
+      initialEntryMode: TimePickerEntryMode.input,
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -52,6 +58,51 @@ class _SleepLoggingViewState extends State<SleepLoggingView> {
         if (isSleep) sleepTime = picked;
         else wakeTime = picked;
       });
+    }
+  }
+
+  // 🚀 دالة إرسال ساعات النوم للباك إند
+  Future<void> _saveSleepLog() async {
+    setState(() => isLoading = true);
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('access_token');
+
+      // إرسال ساعات النوم المحسوبة تلقائياً للهيكل المطلوب بالبوست مان
+      final response = await dio.post(
+        '/api/sleep_log/',
+        data: {
+          "hours": _calculateDuration(), // الحقل المعتمد بالسيرفر
+        },
+        options: Options(
+          headers: {
+            if (token != null) 'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (mounted) {
+          // فتح بوب آب النجاح المعتمد في الفيجما عند الحفظ الصحيح
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => const LoggingSuccessDialog(isSleep: true),
+          );
+        }
+      } else {
+        showMsg("Failed to save sleep duration", isError: true);
+      }
+    } on DioException catch (e) {
+      print("🔴 SLEEP LOG ERROR => ${e.response?.data}");
+      showMsg("Server Error: ${e.response?.statusCode}", isError: true);
+    } catch (e) {
+      showMsg("An unexpected error occurred", isError: true);
+    } finally {
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
     }
   }
 
@@ -121,7 +172,7 @@ class _SleepLoggingViewState extends State<SleepLoggingView> {
 
               SizedBox(height: 24.h),
 
-              // كارت عرض النتيجة الكحلي (image_b20bba.png)
+              // كارت عرض النتيجة الكحلي
               Container(
                 width: double.infinity,
                 padding: EdgeInsets.symmetric(vertical: 40.h),
@@ -142,19 +193,23 @@ class _SleepLoggingViewState extends State<SleepLoggingView> {
 
               SizedBox(height: 60.h),
 
-              // زر الحفظ
+              // زر الحفظ المطور مع إدارة مؤشر التحميل
               SizedBox(
                 width: double.infinity,
                 height: 56.h,
                 child: ElevatedButton(
-                  onPressed: () {
-                    goTo(const LoggingSuccessDialog(isSleep: true,),);
-                  },
+                  onPressed: isLoading ? null : _saveSleepLog,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xff1A3B82),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
                   ),
-                  child: const Text("Save", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  child: isLoading
+                      ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                  )
+                      : const Text("Save", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
