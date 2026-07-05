@@ -10,6 +10,7 @@ import '../../core/logic/api_helper.dart';
 import '../../core/ui/app_button.dart';
 import '../../core/ui/app_input.dart';
 import '../../core/ui/app_login_or_app_register.dart';
+import '../home/pages/home main view.dart';
 import '../home/pages/home_page/view.dart';
 
 class LoginView extends StatefulWidget {
@@ -31,6 +32,7 @@ class _LoginViewState extends State<LoginView> {
   final passwordController = TextEditingController();
 
   final dio = ApiHelper.createDio();
+
   Future<void> _checkAuth() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token');
@@ -49,9 +51,9 @@ class _LoginViewState extends State<LoginView> {
 
   Future<void> login() async {
     if (emailController.text.isEmpty || passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("All fields are required")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("All fields are required")));
       return;
     }
 
@@ -88,7 +90,7 @@ class _LoginViewState extends State<LoginView> {
         SnackBar(content: Text("Hi, ${emailController.text.trim()} 👋")),
       );
 
-      goTo(HomePageView());
+      goTo(const HomeView());
     } on DioException catch (e) {
       String errorMessage = "Something went wrong";
 
@@ -108,9 +110,9 @@ class _LoginViewState extends State<LoginView> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(errorMessage)));
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -128,11 +130,7 @@ class _LoginViewState extends State<LoginView> {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsetsDirectional.only(
-            top: 60,
-            end: 16,
-            start: 16,
-          ),
+          padding: EdgeInsetsDirectional.only(top: 60, end: 16, start: 16),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [

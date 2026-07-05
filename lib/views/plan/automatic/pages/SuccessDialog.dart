@@ -57,7 +57,7 @@ class SuccessDialog extends StatelessWidget {
               value: "5 days/week",
             ),
             SizedBox(height: 12.h),
-            AppButton(title: "Back to Homepage", width: double.infinity, onPressed: () {Navigator.of(context).popUntil((route) => route.isFirst);})
+            AppButton(title: "Back to Homepage", width: double.infinity, onPressed: () {goTo(HomeView());})
           ],
         ),
       ),

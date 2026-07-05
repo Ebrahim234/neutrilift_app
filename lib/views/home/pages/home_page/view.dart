@@ -8,7 +8,10 @@ import 'package:neutrilift/views/home/pages/home_page/widgets/stats_card/stat_ca
 import 'package:neutrilift/views/home/pages/home_page/widgets/week_calender.dart';
 import 'package:neutrilift/views/home/pages/home_page/widgets/workout.dart';
 import 'package:neutrilift/views/home/pages/home_page/barcode_feature/food_scanner.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/logic/health_service.dart';
+import '../../../../core/logic/helper_method.dart';
+import '../../../authentication/login.dart';
 import 'home_controller.dart';
 import 'home_model.dart';
 
@@ -21,33 +24,77 @@ class HomePageView extends StatefulWidget {
 
 class _HomePageViewState extends State<HomePageView> {
   final _controller = HomeController();
-  final HealthService _healthService = HealthService(); // 🚀 نسخة السيرفس الجديد
+  final HealthService _healthService = HealthService();
 
   int steps = 0;
-  int heartRate = 72; // القيمة المحدثة للنبض الديناميكي بدل القديمة الثابتة
+  int heartRate = 72;
   HomeModel? homeData;
+
+  // 🚀 تعريف التايمر الدوري الخاص بنبض القلب
+  Timer? _heartRateTimer;
 
   @override
   void initState() {
     super.initState();
     _controller.checkAuth();
     _loadHomeData();
-    _initHealthData(); // 🚀 بدء سحب بيانات الصحة من الموبايل فوراً
+    _initializeDualTracking(); // 🚀 تشغيل التتبع المزدوج الجديد هنا
   }
 
-  // 🚀 دالة جلب داتا الصحة الحقيقية من الموبايل وتحديث الشاشة أوتوماتيكياً
-  Future<void> _initHealthData() async {
-    bool authorized = await _healthService.requestPermissions();
-    if (authorized) {
-      final liveSteps = await _healthService.getTodaySteps();
-      final liveHeartRate = await _healthService.getLatestHeartRate();
+  // دالة الـ Logout المؤقتة للتيتست
+  Future<void> _temporaryLogout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('access_token');
+    await prefs.remove('refresh_token');
 
+    LoginView.tempAccessToken = null;
+    LoginView.tempRefreshToken = null;
+
+    goTo(const LoginView());
+  }
+
+  // 🚀 دالة التتبع المزدوج الاحترافية (Pedometer لايف + Health Package دوري)
+  Future<void> _initializeDualTracking() async {
+    // 1️⃣ طلب صلاحيات باكدج الـ Health وصلاحيات الحساسات
+    bool healthAuthorized = await _healthService.requestPermissions();
+    bool activityAuthorized = await _controller.requestPermission(); // لو الدالة متوفرة بالكنترولر لطلب صلاحية الحساس الحركي
+
+    if (healthAuthorized) {
+      // 2️⃣ 🏃‍♂️ تشغيل عداد الخطوات لايف خطوة بخطوة (Pedometer Stream) من الكنترولر بتاعك
+      _controller.startStepCounting(
+        onStep: (liveSteps) {
+          if (mounted) {
+            setState(() {
+              steps = liveSteps; // تحديث لايف فوراً مع كل خطوة برجلِك
+            });
+          }
+        },
+        onError: () {
+          print("🔴 Pedometer Sensor Error or Not Supported");
+        },
+      );
+
+      // 3️⃣ ❤️ سحب قراءة نبض القلب الافتتاحية فوراً عند فتح الصفحة
+      _fetchLatestHeartRate();
+
+      // 4️⃣ ⏱️ تشغيل تايمر دوري يلف كل 60 ثانية يسحب نبض القلب الجديد من الـ Health عشان نوفر البطارية
+      _heartRateTimer = Timer.periodic(const Duration(seconds: 60), (timer) async {
+        await _fetchLatestHeartRate();
+      });
+    }
+  }
+
+  // دالة منفصلة لسحب نبض القلب فقط وتحديث المتغير الخاص به
+  Future<void> _fetchLatestHeartRate() async {
+    try {
+      final liveHeartRate = await _healthService.getLatestHeartRate();
       if (mounted) {
         setState(() {
-          steps = liveSteps;
           heartRate = liveHeartRate;
         });
       }
+    } catch (e) {
+      print("🔴 Error fetching heart rate from health package: $e");
     }
   }
 
@@ -62,6 +109,7 @@ class _HomePageViewState extends State<HomePageView> {
 
   @override
   void dispose() {
+    _heartRateTimer?.cancel(); // 🚀 قفل التايمر تماماً فور الخروج لمنع الـ Memory Leak
     _controller.dispose();
     super.dispose();
   }
@@ -92,11 +140,15 @@ class _HomePageViewState extends State<HomePageView> {
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
+                  IconButton(
+                    icon: const Icon(Icons.logout, color: Colors.red),
+                    onPressed: _temporaryLogout,
+                  ),
                 ],
               ),
               SizedBox(height: 16.h),
 
-              // كارت الماكروز والإحصائيات الحية من الهاتف والسيرفر المشترك
+              // كارت الماكروز والإحصائيات الحية من الهاتف والسيرفر المشترك (زي ما هو بالملي)
               Container(
                 padding: const EdgeInsetsDirectional.all(16),
                 height: 192,
@@ -109,14 +161,14 @@ class _HomePageViewState extends State<HomePageView> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // 🚀 حقن نبض القلب الديناميكي الحقيقي الراجع من الهاتف هنا
+                        // 🚀 حقن نبض القلب الديناميكي الحقيقي من باكدج Health هنا داخل الـ Tabs الصغيرة بتاعتك
                         StatCardTop(
                           icon: "heart_rate.svg",
                           value: heartRate,
                           unit: "bpm",
                           label: "Heart Rate",
                         ),
-                        // 🚀 حقن خطوات اليوزر الحقيقية والمحدثة بالمللي اليوم هنا
+                        // 🚀 حقن خطوات اليوزر الحقيقية واللايف المحدثة بالـ Pedometer هنا
                         StatCardTop(
                           icon: "steps.svg",
                           value: steps,
@@ -125,7 +177,7 @@ class _HomePageViewState extends State<HomePageView> {
                         ),
                         StatCardTop(
                           icon: "calorie_intake.svg",
-                          value: homeData?.dailyCalorieIntake ?? 0, // تغذية ديناميكية آمنة من السيرفر
+                          value: homeData?.dailyCalorieIntake ?? 0,
                           unit: "Kcal",
                           label: "Calorie Intake",
                         ),

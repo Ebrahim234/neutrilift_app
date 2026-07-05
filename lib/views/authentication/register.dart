@@ -63,7 +63,7 @@ class _RegisterViewState extends State<RegisterView> {
         const SnackBar(content: Text("Registered Successfully ✅")),
       );
 
-      goTo(OtpVerificationView());
+      goTo(OtpVerificationView(email: '',));
     } on DioException catch (e) {
       print("Status: ${e.response?.statusCode}");
       print("Error: ${e.response?.data}");

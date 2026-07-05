@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:neutrilift/views/authentication/otp_verification.dart';
 import 'package:neutrilift/views/splash.dart';
 import 'core/logic/helper_method.dart';
 

@@ -22,11 +22,14 @@ class ApiHelper {
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          // ✅ متحطش token بس في login و signup
+          // ✅ ضفنا /api/signup/ و /api/password-reset/ عشان الريكويست يروح نضيف تماماً من غير توكن
           final isAuthRequest =
               options.path.contains('/api/token/') ||
                   options.path.contains('/api/register/') ||
-                  options.path.contains('/api/login/');
+                  options.path.contains('/api/signup/') || // 🚀 منع التوكن هنا
+                  options.path.contains('/api/login/') ||
+                  options.path.contains('/api/password-reset/');
+
           if (!isAuthRequest) {
             final prefs = await SharedPreferences.getInstance();
             final token =
@@ -46,6 +49,12 @@ class ApiHelper {
           print("🔴 RESPONSE DATA: ${error.response?.data}");
           final data = error.response?.data;
           print("🔴 CODE: ${data is Map ? data['code'] : null}");
+
+          // 🚀 استثناء لروابط استعادة الباسورد عشان لو الكود غلط يعرضه في الشاشة وميطردش لصفحة الـ Login
+          if (error.requestOptions.path.contains('/api/password-reset/')) {
+            handler.next(error);
+            return;
+          }
 
           if (error.response?.statusCode == 401) {
             final responseData = error.response?.data;
