@@ -16,7 +16,7 @@ class HealthService {
   Future<bool> requestPermissions() async {
     try {
       // 🚀 تم التعديل هنا لـ HealthDataAccess بدلاً من الـ enum القديم
-      bool? hasPermissions = await _health.hasPermissions(_types, permissions: [
+      bool? hasPermissions = await _health.hasPermissions(_types, 
         HealthDataAccess.READ,
         HealthDataAccess.READ,
       ]);
