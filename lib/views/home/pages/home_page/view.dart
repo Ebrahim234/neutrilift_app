@@ -140,10 +140,7 @@ class _HomePageViewState extends State<HomePageView> {
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.logout, color: Colors.red),
-                    onPressed: _temporaryLogout,
-                  ),
+
                 ],
               ),
               SizedBox(height: 16.h),
