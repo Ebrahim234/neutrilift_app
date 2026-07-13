@@ -1,59 +1,31 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:neutrilift/core/logic/helper_method.dart';
-import 'package:neutrilift/views/authentication/forget_password.dart';
+import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../../core/logic/api_helper.dart';
-import '../../core/ui/app_button.dart';
-import '../../core/ui/app_input.dart';
-import '../../core/ui/app_login_or_app_register.dart';
-import '../home/pages/home main view.dart';
-import '../home/pages/home_page/view.dart';
+import 'package:neutrilift/core/logic/api_helper.dart';
+import 'package:neutrilift/core/logic/helper_method.dart';
+// 🚀 استدعاء الغلاف الخارجي اللي جواه الـ Nav Bar
+import 'package:neutrilift/views/home/pages/home main view.dart';
 
 class LoginView extends StatefulWidget {
-  const LoginView({super.key});
-
-  // ✅ static هنا عشان نوصلهم من api_helper
   static String? tempAccessToken;
   static String? tempRefreshToken;
+
+  const LoginView({super.key});
 
   @override
   State<LoginView> createState() => _LoginViewState();
 }
 
 class _LoginViewState extends State<LoginView> {
-  bool isChecked = false;
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final Dio dio = ApiHelper.createDio();
   bool isLoading = false;
 
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
-
-  final dio = ApiHelper.createDio();
-
-  Future<void> _checkAuth() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('access_token');
-    print("TOKEN: $token"); // ✅ اطبع الـ token
-
-    try {
-      await dio.get("/");
-    } on DioException catch (e) {
-      final code = e.response?.data?['code'];
-      if (code == 'not_authenticated') {
-        if (!mounted) return;
-        goTo(LoginView());
-      }
-    }
-  }
-
-  Future<void> login() async {
-    if (emailController.text.isEmpty || passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("All fields are required")));
+  Future<void> _login() async {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      showMsg("Please fill in all fields", isError: true);
       return;
     }
 
@@ -61,149 +33,78 @@ class _LoginViewState extends State<LoginView> {
 
     try {
       final response = await dio.post(
-        "/api/login/",
+        '/api/login/', // تأكد من مسار الـ API عندك
         data: {
-          "email": emailController.text.trim(),
-          "password": passwordController.text.trim(),
+          "email": _emailController.text.trim(),
+          "password": _passwordController.text,
         },
       );
 
-      final data = response.data;
-      print("RESPONSE: $data");
-      final prefs = await SharedPreferences.getInstance();
+      if (response.statusCode == 200 && response.data != null) {
+        final accessToken = response.data['access'] ?? response.data['access_token'];
+        final refreshToken = response.data['refresh'] ?? response.data['refresh_token'];
 
-      // ✅ بعد - بيحفظ دايماً
-      await prefs.setString('access_token', data['access']);
-      await prefs.setString('refresh_token', data['refresh']);
+        // حفظ التوكنز في الجهاز للأوتو لوجن
+        final prefs = await SharedPreferences.getInstance();
+        if (accessToken != null) await prefs.setString('access_token', accessToken);
+        if (refreshToken != null) await prefs.setString('refresh_token', refreshToken);
 
-      // ✅ بعت request للـ home page على طول بعد الـ login
-      await dio.get("/");
+        LoginView.tempAccessToken = accessToken;
+        LoginView.tempRefreshToken = refreshToken;
 
-      if (!mounted) return;
+        showMsg("Welcome back!", isError: false);
 
-      final serverMessage = data['message'] ?? "";
-      final email = serverMessage
-          .replaceAll("Hello, ", "")
-          .replaceAll(". you logged in successfully.", "");
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Hi, ${emailController.text.trim()} 👋")),
-      );
-
-      goTo(const HomeView());
-    } on DioException catch (e) {
-      String errorMessage = "Something went wrong";
-
-      if (e.response != null && e.response!.data is Map) {
-        final errors = e.response!.data as Map;
-
-        if (errors.containsKey('__all__')) {
-          errorMessage = errors['__all__'][0];
-        } else if (errors.isNotEmpty) {
-          final firstKey = errors.keys.first;
-          final firstError = errors[firstKey];
-          if (firstError is List && firstError.isNotEmpty) {
-            errorMessage = firstError[0];
-          }
-        }
+        // 🎯 التصليح السحري: التوجيه للـ الغلاف الخارجي وليس الصفحة الداخلية
+        goTo(const HomeView(), canPop: false);
       }
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(errorMessage)));
+    } on DioException catch (e) {
+      showMsg(e.response?.data['detail'] ?? "Login failed. Check credentials.", isError: true);
+    } catch (e) {
+      showMsg("An unexpected error occurred", isError: true);
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
   }
 
   @override
-  void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsetsDirectional.only(top: 60, end: 16, start: 16),
+        child: Padding(
+          padding: EdgeInsets.all(24.w),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Align(
-                alignment: AlignmentDirectional.topStart,
-                child: Text.rich(
-                  style: GoogleFonts.muktaVaani(),
-                  TextSpan(
-                    children: [
-                      TextSpan(
-                        text: "Welcome Back \n",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 36,
-                        ),
-                      ),
-                      TextSpan(
-                        text: "Let's get you back on track.",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 24,
-                        ),
-                      ),
-                    ],
-                  ),
+              Text(
+                "Welcome Back",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 28.sp, fontWeight: FontWeight.bold, color: const Color(0xff1A2D6B)),
+              ),
+              SizedBox(height: 32.h),
+              TextField(
+                controller: _emailController,
+                decoration: const InputDecoration(labelText: "Email", border: OutlineInputBorder()),
+              ),
+              SizedBox(height: 16.h),
+              TextField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: const InputDecoration(labelText: "Password", border: OutlineInputBorder()),
+              ),
+              SizedBox(height: 32.h),
+              ElevatedButton(
+                onPressed: isLoading ? null : _login,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xff1A2D6B),
+                  padding: EdgeInsets.symmetric(vertical: 14.h),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
                 ),
+                child: isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text("Login", style: TextStyle(color: Colors.white, fontSize: 16)),
               ),
-              SizedBox(height: 56),
-              AppInput(
-                hintText: "Enter your email",
-                controller: emailController,
-              ),
-              AppInput(
-                hintText: "Enter your password",
-                isPassword: true,
-                controller: passwordController,
-              ),
-              Row(
-                children: [
-                  Checkbox(
-                    value: isChecked,
-                    onChanged: (value) {
-                      setState(() {
-                        isChecked = value!;
-                      });
-                    },
-                  ),
-                  SizedBox(width: 4),
-                  Text(
-                    "Remember me",
-                    style: TextStyle(color: Color(0xff9B9B9B)),
-                  ),
-                  Spacer(),
-                  TextButton(
-                    onPressed: () {
-                      goTo(ForgetPasswordView());
-                    },
-                    child: Text(
-                      "Forgot Password?",
-                      style: TextStyle(color: Color(0xff415A77)),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 20.h),
-              AppButton(
-                title: "Next",
-                isLoading: isLoading,
-                onPressed: login,
-                width: double.infinity,
-              ),
-              SizedBox(height: 30),
-              AppLoginOrAppRegister(isLogin: true),
             ],
           ),
         ),
