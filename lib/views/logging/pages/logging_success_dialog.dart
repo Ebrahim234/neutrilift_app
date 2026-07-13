@@ -4,6 +4,8 @@ import 'package:neutrilift/core/logic/helper_method.dart';
 import 'package:neutrilift/core/ui/app_button.dart';
 import 'package:neutrilift/views/logging/view.dart';
 
+import '../../home/pages/home main view.dart';
+
 class LoggingSuccessDialog extends StatelessWidget {
   final bool isSleep;
 
@@ -53,8 +55,15 @@ class LoggingSuccessDialog extends StatelessWidget {
               title: "Back to Log",
               width: double.infinity,
               onPressed: () {
-                goTo(LoggingView());
-              },
+                // 🚀 هيمسح كل الشاشات ويفتح الـ HomeView الأصلي بتاعك على تابة الـ Log (الاندكس رقم 2)
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const HomeView(initialIndex: 2),
+                  ),
+                      (route) => false, // يمسح كاش الصفحات القديمة عشان الكالوريز تتحدث فوراً
+                );
+              }
             ),
           ],
         ),

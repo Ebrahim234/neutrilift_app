@@ -43,13 +43,14 @@ class _WorkoutViewState extends State<WorkoutView> {
         setState(() {
           groupData = response.data;
           exercises = response.data['exercises'] ?? [];
-          exercises.sort((a, b) => (a['order'] as int).compareTo(b['order'] as int));
+          exercises.sort(
+            (a, b) => (a['order'] as int).compareTo(b['order'] as int),
+          );
           isLoading = false;
         });
       }
     } catch (e) {
       setState(() => isLoading = false);
-      // ✅ إظهار رسالة خطأ باستخدام دالتك
       showMsg('Failed to load workout group', isError: true);
     }
   }
@@ -106,69 +107,84 @@ class _WorkoutViewState extends State<WorkoutView> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        // ✅ استخدمنا AppBack
         leading: const AppBack(),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20.w),
-            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Start Workout", style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold, color: const Color(0xff0D1B2A))),
-                SizedBox(height: 16.h),
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.symmetric(vertical: 12.h),
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12.r)),
-                  child: const Center(child: Text("Today's Workout", style: TextStyle(fontWeight: FontWeight.bold))),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20.w),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Start Workout",
+                        style: TextStyle(
+                          fontSize: 24.sp,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xff0D1B2A),
+                        ),
+                      ),
+                      SizedBox(height: 16.h),
+                      Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.symmetric(vertical: 12.h),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            "Today's Workout",
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 20.h),
+                    ],
+                  ),
                 ),
-                SizedBox(height: 20.h),
+
+                Expanded(
+                  child: ListView.builder(
+                    padding: EdgeInsets.symmetric(horizontal: 20.w),
+                    itemCount: exercises.length,
+                    itemBuilder: (context, index) {
+                      final ex = exercises[index];
+                      int realExerciseId = ex['exercise'];
+
+                      return ExerciseCard(
+                        imageUrl: "workout.png",
+                        name: ex['name'] ?? 'Exercise',
+                        setsReps: "${ex['sets']} sets ${ex['reps']} reps",
+                        onPlayTapped: () => _openExerciseDetail(realExerciseId),
+                      );
+                    },
+                  ),
+                ),
+
+                if (!isWorkoutActive)
+                  Padding(
+                    padding: EdgeInsets.all(20.w),
+                    // ✅ استخدمنا AppButton لزرار Start
+                    child: AppButton(
+                      title: "Start",
+                      width: double.infinity,
+                      onPressed: _startWorkout,
+                    ),
+                  )
+                else
+                  ActiveWorkoutBar(
+                    groupName: groupData?['name'] ?? 'Workout',
+                    timerText: _formatTime(secondsElapsed),
+                    onPause: () {},
+                    onEnd: _endWorkout,
+                  ),
+                SizedBox(height: 40),
               ],
             ),
-          ),
-
-          Expanded(
-            child: ListView.builder(
-              padding: EdgeInsets.symmetric(horizontal: 20.w),
-              itemCount: exercises.length,
-              itemBuilder: (context, index) {
-                final ex = exercises[index];
-                int realExerciseId = ex['exercise'];
-
-                return ExerciseCard(
-                  imageUrl: "workout.png",
-                  name: ex['name'] ?? 'Exercise',
-                  setsReps: "${ex['sets']} sets ${ex['reps']} reps",
-                  onPlayTapped: () => _openExerciseDetail(realExerciseId),
-                );
-              },
-            ),
-          ),
-
-          if (!isWorkoutActive)
-            Padding(
-              padding: EdgeInsets.all(20.w),
-              // ✅ استخدمنا AppButton لزرار Start
-              child: AppButton(
-                title: "Start",
-                width: double.infinity,
-                onPressed: _startWorkout,
-              ),
-            )
-          else
-            ActiveWorkoutBar(
-              groupName: groupData?['name'] ?? 'Workout',
-              timerText: _formatTime(secondsElapsed),
-              onPause: () { },
-              onEnd: _endWorkout,
-            )
-        ],
-      ),
     );
   }
 }

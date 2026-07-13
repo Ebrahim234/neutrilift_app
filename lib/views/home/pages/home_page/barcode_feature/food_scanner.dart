@@ -81,13 +81,6 @@ class _FoodScannerWidgetState extends State<FoodScannerWidget> {
                       color: Color(0xff1A2D6B),
                     ),
                   ),
-                  Text(
-                    "AI-powered nutrition analysis",
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey,
-                    ),
-                  ),
                 ],
               ),
             ],

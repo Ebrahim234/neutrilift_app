@@ -7,11 +7,12 @@ import 'package:neutrilift/views/home/pages/home_page/widgets/stats_card/stat_ca
 import 'package:neutrilift/views/home/pages/home_page/widgets/stats_card/stat_card_top.dart';
 import 'package:neutrilift/views/home/pages/home_page/widgets/week_calender.dart';
 import 'package:neutrilift/views/home/pages/home_page/widgets/workout.dart';
-import 'package:neutrilift/views/home/pages/home_page/barcode_feature/food_scanner.dart';
+import 'package:neutrilift/views/home/pages/home_page/widgets/workout_routines.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/logic/health_service.dart';
 import '../../../../core/logic/helper_method.dart';
 import '../../../authentication/login.dart';
+import 'barcode_feature/food_scanner.dart';
 import 'home_controller.dart';
 import 'home_model.dart';
 
@@ -29,19 +30,17 @@ class _HomePageViewState extends State<HomePageView> {
   int steps = 0;
   int heartRate = 72;
   HomeModel? homeData;
-
-  // تايمر نبض القلب الدوري
   Timer? _heartRateTimer;
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _controller.checkAuth();
     _loadHomeData();
-    _initializeDualTracking(); // تشغيل التتبع المزدوج للحساسات
+    _initializeDualTracking();
   }
 
-  // دالة الـ Logout المؤقتة للتست
   Future<void> _temporaryLogout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('access_token');
@@ -53,13 +52,9 @@ class _HomePageViewState extends State<HomePageView> {
     goTo(const LoginView());
   }
 
-  // دالة التتبع المزدوج الاحترافية (Pedometer لايف + Health Package دوري)
   Future<void> _initializeDualTracking() async {
     bool healthAuthorized = await _healthService.requestPermissions();
-    bool activityAuthorized = await _controller.requestPermission();
-
     if (healthAuthorized) {
-      // 🏃‍♂️ تشغيل عداد الخطوات لايف (Sensor Stream)
       _controller.startStepCounting(
         onStep: (liveSteps) {
           if (mounted) {
@@ -73,17 +68,14 @@ class _HomePageViewState extends State<HomePageView> {
         },
       );
 
-      // ❤️ سحب قراءة نبض القلب الافتتاحية فوراً عند فتح الصفحة
       _fetchLatestHeartRate();
 
-      // ⏱️ تايمر دوري (Battery-Aware) كل 60 ثانية لتحديث النبض
       _heartRateTimer = Timer.periodic(const Duration(seconds: 60), (timer) async {
         await _fetchLatestHeartRate();
       });
     }
   }
 
-  // دالة سحب نبض القلب من باكدج الـ Health
   Future<void> _fetchLatestHeartRate() async {
     try {
       final liveHeartRate = await _healthService.getLatestHeartRate();
@@ -97,125 +89,153 @@ class _HomePageViewState extends State<HomePageView> {
     }
   }
 
-  // دالة سحب بيانات الـ API (صامتة ومأمنة بالكامل)
   Future<void> _loadHomeData() async {
     try {
       final data = await _controller.getHomeData();
-      if (mounted && data != null) {
+      if (mounted) {
         setState(() {
           homeData = data;
+          isLoading = false;
         });
       }
     } catch (e) {
-      print("🔴 Server Error: $e"); // بيطبع الأيرور في الـ Console بس مش بيعطل الـ UI
+      print("🔴 Error loading home data: $e");
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
     }
   }
 
   @override
   void dispose() {
-    _heartRateTimer?.cancel(); // قفل التايمر فوراً لمنع الـ Memory Leak
+    _heartRateTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(
+        backgroundColor: Color(0xffF0F0F0),
+        body: Center(
+          child: CircularProgressIndicator(color: Color(0xff1A2D6B)),
+        ),
+      );
+    }
+
+    int displayHeartRate = (heartRate != 72 && heartRate != 0) ? heartRate : (homeData?.heartRate ?? 72);
+    int displaySteps = steps > 0 ? steps : (homeData?.steps ?? 0);
+
     return Scaffold(
       backgroundColor: const Color(0xffF0F0F0),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsetsDirectional.only(start: 16, end: 16, top: 30, bottom: 60),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  AppImage(
-                    image: "https://picsum.photos/200",
-                    height: 70.h,
-                    width: 70.w,
-                    isCircle: true,
-                    fit: BoxFit.fill,
-                  ),
-                  SizedBox(width: 8.w),
-                  const Expanded(
-                    child: Text(
-                      "Welcome, Ahmed",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 16.h),
-
-              // كارت الماكروز والإحصائيات الحية (مأمن تماماً بـ Fallback values)
-              Container(
-                padding: const EdgeInsetsDirectional.all(16),
-                height: 192,
-                decoration: BoxDecoration(
-                  color: const Color(0xffFFFFFF),
-                  borderRadius: BorderRadius.circular(16.r),
-                ),
-                child: Column(
+        child: RefreshIndicator(
+          color: const Color(0xff1A2D6B),
+          onRefresh: _loadHomeData,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsetsDirectional.only(start: 16, end: 16, top: 30, bottom: 60),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        StatCardTop(
-                          icon: "heart_rate.svg",
-                          value: heartRate,
-                          unit: "bpm",
-                          label: "Heart Rate",
-                        ),
-                        StatCardTop(
-                          icon: "steps.svg",
-                          value: steps,
-                          unit: "Today",
-                          label: "Steps",
-                        ),
-                        StatCardTop(
-                          icon: "calorie_intake.svg",
-                          value: homeData?.dailyCalorieIntake ?? 0,
-                          unit: "Kcal",
-                          label: "Calorie Intake",
-                        ),
-                      ],
+                    AppImage(
+                      image: "https://picsum.photos/200",
+                      height: 70.h,
+                      width: 70.w,
+                      isCircle: true,
+                      fit: BoxFit.fill,
                     ),
-                    SizedBox(height: 8.h),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        StatCardSide(
-                          icon: "sleep.svg",
-                          value: double.tryParse(homeData?.weeklySleepingHours ?? "0.0") ?? 0.0,
-                          unit: "Hours",
-                          label: "Avg Sleep",
-                        ),
-                        StatCardSide(
-                          icon: "weight.svg",
-                          value: double.tryParse(homeData?.weight ?? "0.0") ?? 0.0,
-                          unit: "KG",
-                          label: "Weight",
-                        ),
-                      ],
+                    SizedBox(width: 8.w),
+                    const Expanded(
+                      child: Text(
+                        "Welcome, Ahmed",
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ],
                 ),
-              ),
-              SizedBox(height: 16.h),
+                SizedBox(height: 16.h),
 
-              // 🛡️ لوجيك الحماية الذكي: لو الداتا لسه مجاتش أو مفيش خطة اعرض NoPlanWidget، غير كدة اظهر الجدول
-              if (homeData == null || homeData!.hasPlan == false) ...[
-                const NoPlanWidget(),
-              ] else ...[
-                WeekCalender(homeData: homeData),
-                SizedBox(height: 8.h),
-                 Workout(),
+                // كارت الإحصائيات الحقيقية
+                Container(
+                  padding: const EdgeInsetsDirectional.all(16),
+                  height: 192,
+                  decoration: BoxDecoration(
+                    color: const Color(0xffFFFFFF),
+                    borderRadius: BorderRadius.circular(16.r),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          StatCardTop(icon: "heart_rate.svg", value: displayHeartRate, unit: "bpm", label: "Heart Rate"),
+                          StatCardTop(icon: "steps.svg", value: displaySteps, unit: "Today", label: "Steps"),
+                          StatCardTop(icon: "calorie_intake.svg", value: homeData?.dailyCalorieIntake ?? 0, unit: "kcal", label: "Calories Intake"),
+                        ],
+                      ),
+                      SizedBox(height: 8.h),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          StatCardSide(icon: "sleep.svg", value: double.tryParse(homeData?.weeklySleepingHours ?? "0.0") ?? 0.0, unit: "Hrs", label: "Avg Sleep"),
+                          StatCardSide(icon: "weight.svg", value: double.tryParse(homeData?.weight ?? "0.0") ?? 0.0, unit: "Kg", label: "Weight"),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 16.h),
+
+                // بانر التهنئة عند انتهاء الخطة (State 3)
+                if (homeData?.planFinished == true) ...[
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
+                    margin: EdgeInsets.only(bottom: 16.h),
+                    decoration: BoxDecoration(
+                      color: const Color(0xff10B981),
+                      borderRadius: BorderRadius.circular(16.r),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.check_circle_rounded, color: Colors.white, size: 24),
+                        SizedBox(width: 8.w),
+                        Expanded(
+                          child: Text(
+                            "Congrats ! You Completed Your Plan",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                // هيكلة الحالات الثلاثة ديناميكياً لتطابق الـ Figma بالملّي
+                if (homeData == null || homeData!.hasPlan == false || homeData!.planFinished == true) ...[
+                  const NoPlanWidget(),
+                  SizedBox(height: 16.h),
+                  const WorkoutRoutines(),
+                ] else ...[
+                  WeekCalender(homeData: homeData),
+                  SizedBox(height: 8.h),
+                  Workout(homeData: homeData), // 🚀 تمرير الـ homeData لجلب التمرين ديناميكياً
+                  SizedBox(height: 16.h),
+                  const WorkoutRoutines(),
+                ],
+
+                SizedBox(height: 16.h),
+                const FoodScannerWidget(),
               ],
-
-              SizedBox(height: 8.h),
-              const FoodScannerWidget(),
-            ],
+            ),
           ),
         ),
       ),

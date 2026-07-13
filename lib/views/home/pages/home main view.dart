@@ -7,7 +7,8 @@ import 'home_page/view.dart';
 import 'package:neutrilift/views/plan/create_plan/create_plan_view.dart';
 
 class HomeView extends StatefulWidget {
-  const HomeView({super.key});
+  final int initialIndex;
+  const HomeView({super.key, this.initialIndex = 0});
 
   @override
   State<HomeView> createState() => _NewHomeViewState();
@@ -22,7 +23,13 @@ class _NewHomeViewState extends State<HomeView> {
     _Model(icon: "settings.svg", view: const SettingsView(), label: "Setting"),
   ];
 
-  int currentIndex = 0;
+  late int currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    currentIndex = widget.initialIndex;
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-
-import 'app_image.dart';
-
+import '../../views/home/pages/home main view.dart';
 class AppBack extends StatelessWidget {
 
   const AppBack({super.key});
@@ -12,9 +9,24 @@ class AppBack extends StatelessWidget {
     return Align(
       alignment: AlignmentDirectional.centerStart,
       child: IconButton(
-        onPressed: () => Navigator.pop(context),
-        icon: Icon(Icons.arrow_back, color: Colors.black, size: 30.sp),
-      ),
+        onPressed: () {
+          if (Navigator.canPop(context)) {
+            // 1. لو الشاشة دي مفتوحة فوق شاشة تانية، هيرجع طبيعي جداً لورا
+            Navigator.pop(context);
+          } else {
+            // 2. 🎯 لو مفتوحة كـ تابة (الـ Stack فاضي)، هينقله فوراً لتابة الـ Home (الاندكس 0) بدون شاشة سودة!
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => const HomeView(initialIndex: 0)), // يفتح على أول تابة
+                  (route) => false, // يمسح أي كاش قديم
+            );
+          }
+        },
+        icon: const Icon(
+          Icons.arrow_back_ios,
+          color: Color(0xff173272), // لون تطبيقك الأزرق المعتمد
+        ),
+      )
     );
   }
 }

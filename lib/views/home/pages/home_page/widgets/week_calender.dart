@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../home_model.dart'; // 👈 تأكد من مسار الموديل عندك
+import '../home_model.dart';
 
 class WeekCalender extends StatefulWidget {
-  final HomeModel? homeData; // 👈 استلام الداتا لجعل التقويم ديناميكي
+  final HomeModel? homeData;
   const WeekCalender({super.key, this.homeData});
 
   @override
@@ -11,7 +11,6 @@ class WeekCalender extends StatefulWidget {
 }
 
 class _WeekCalenderState extends State<WeekCalender> {
-  // ربط أيام الأسبوع بأرقام الـ ID المعتمدة في السيرفر (الإثنين = 1 إلى الأحد = 7)
   final List<Map<String, dynamic>> daysConfig = [
     {"name": "M", "id": 1, "fullName": "Monday"},
     {"name": "T", "id": 2, "fullName": "Tuesday"},
@@ -22,27 +21,36 @@ class _WeekCalenderState extends State<WeekCalender> {
     {"name": "S", "id": 7, "fullName": "Sunday"},
   ];
 
-  int selectedDay = 1;
+  int selectedDay = 0;
 
   @override
   void initState() {
     super.initState();
-    // تحديد اليوم الحالي أوتوماتيكياً من ساعة الموبايل (0 لـ 6)
-    selectedDay = DateTime.now().weekday - 1;
+    int currentWeekdayIndex = DateTime.now().weekday - 1;
+    selectedDay = (currentWeekdayIndex >= 0 && currentWeekdayIndex < 7) ? currentWeekdayIndex : 0;
   }
 
   @override
   Widget build(BuildContext context) {
-    // استخراج أرقام أيام التمرين من الموديل في قائمة ليسهل فحصها
-    List<int> workoutDayIds = widget.homeData?.exerciseDays?.map((e) => e.day ?? 0).toList() ?? [];
+    List<int> workoutDayIds = widget.homeData?.exerciseDays
+        ?.map((e) => e.day ?? 0)
+        .where((day) => day > 0)
+        .toList() ?? [];
 
     return Container(
       height: 140.h,
       width: double.infinity,
       padding: const EdgeInsetsDirectional.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16.r),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16.r),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            )
+          ]
       ),
       child: Column(
         children: [
@@ -50,7 +58,7 @@ class _WeekCalenderState extends State<WeekCalender> {
             children: [
               Text(
                 "Week ${widget.homeData?.currentWeek ?? 1} • ${daysConfig[selectedDay]["fullName"]}",
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xff1A2D6B)),
               ),
               const Spacer(),
               Text(
@@ -59,7 +67,7 @@ class _WeekCalenderState extends State<WeekCalender> {
               )
             ],
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: 12.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -73,8 +81,8 @@ class _WeekCalenderState extends State<WeekCalender> {
                   child: Column(
                     children: [
                       Container(
-                        width: 32,
-                        height: 32,
+                        width: 32.w,
+                        height: 32.w,
                         decoration: BoxDecoration(
                           color: selectedDay == i ? const Color(0xff1A2D6B) : Colors.transparent,
                           shape: BoxShape.circle,
@@ -85,14 +93,14 @@ class _WeekCalenderState extends State<WeekCalender> {
                           style: TextStyle(
                             color: selectedDay == i ? Colors.white : const Color(0xff1A2D6B),
                             fontWeight: FontWeight.bold,
+                            fontSize: 12.sp,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      // 🚀 النقطة الزرقاء تنير ديناميكياً فقط لو الرقم موجود في قائمة السيرفر
+                      const SizedBox(height: 6),
                       Container(
-                        width: 6,
-                        height: 6,
+                        width: 6.r,
+                        height: 6.r,
                         decoration: BoxDecoration(
                           color: workoutDayIds.contains(daysConfig[i]["id"])
                               ? const Color(0xff1A2D6B)
