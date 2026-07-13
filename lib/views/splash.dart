@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:neutrilift/core/logic/helper_method.dart';
+import 'package:neutrilift/core/ui/app_image.dart';
 import 'package:neutrilift/views/authentication/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -26,10 +27,8 @@ class _SplashViewState extends State<SplashView> {
     final token = prefs.getString('access_token');
 
     if (token != null) {
-      // ✅ عنده token محفوظ → روح Home
       goTo(HomeView());
     } else {
-      // ✅ مفيش token → روح Register
       goTo(LoginView());
     }
   }
@@ -42,7 +41,7 @@ class _SplashViewState extends State<SplashView> {
         children: [
           Center(
             child: Text(
-              "Neutrlift",
+              "Nutrlift",
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
             ),
           )

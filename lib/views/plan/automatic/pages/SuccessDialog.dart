@@ -57,16 +57,25 @@ class SuccessDialog extends StatelessWidget {
               value: "5 days/week",
             ),
             SizedBox(height: 12.h),
-            AppButton(title: "Back to Homepage", width: double.infinity, onPressed: () {goTo(HomeView());})
+
+            // 🚀 التعديل السحري هنا: تدمير كل الشاشات السابقة والعودة لجذر التطبيق
+            AppButton(
+              title: "Back to Homepage",
+              width: double.infinity,
+              onPressed: () {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => HomeView()),
+                      (route) => false, // السطر ده هو اللي بيمسح كل شاشات الـ Plan السابقة من الذاكرة فوراً
+                );
+              },
+            )
           ],
         ),
       ),
     );
   }
 }
-
-
-
 
 class SavedPlanCard extends StatelessWidget {
   final String icon;
@@ -94,7 +103,7 @@ class SavedPlanCard extends StatelessWidget {
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch, 
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
@@ -117,9 +126,7 @@ class SavedPlanCard extends StatelessWidget {
               ),
             ],
           ),
-
           SizedBox(height: 4.h),
-
           Text(
             value,
             style: TextStyle(

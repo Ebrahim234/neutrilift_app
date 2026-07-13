@@ -30,7 +30,7 @@ class _HomePageViewState extends State<HomePageView> {
   int heartRate = 72;
   HomeModel? homeData;
 
-  // 🚀 تعريف التايمر الدوري الخاص بنبض القلب
+  // تايمر نبض القلب الدوري
   Timer? _heartRateTimer;
 
   @override
@@ -38,10 +38,10 @@ class _HomePageViewState extends State<HomePageView> {
     super.initState();
     _controller.checkAuth();
     _loadHomeData();
-    _initializeDualTracking(); // 🚀 تشغيل التتبع المزدوج الجديد هنا
+    _initializeDualTracking(); // تشغيل التتبع المزدوج للحساسات
   }
 
-  // دالة الـ Logout المؤقتة للتيتست
+  // دالة الـ Logout المؤقتة للتست
   Future<void> _temporaryLogout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('access_token');
@@ -53,19 +53,18 @@ class _HomePageViewState extends State<HomePageView> {
     goTo(const LoginView());
   }
 
-  // 🚀 دالة التتبع المزدوج الاحترافية (Pedometer لايف + Health Package دوري)
+  // دالة التتبع المزدوج الاحترافية (Pedometer لايف + Health Package دوري)
   Future<void> _initializeDualTracking() async {
-    // 1️⃣ طلب صلاحيات باكدج الـ Health وصلاحيات الحساسات
     bool healthAuthorized = await _healthService.requestPermissions();
-    bool activityAuthorized = await _controller.requestPermission(); // لو الدالة متوفرة بالكنترولر لطلب صلاحية الحساس الحركي
+    bool activityAuthorized = await _controller.requestPermission();
 
     if (healthAuthorized) {
-      // 2️⃣ 🏃‍♂️ تشغيل عداد الخطوات لايف خطوة بخطوة (Pedometer Stream) من الكنترولر بتاعك
+      // 🏃‍♂️ تشغيل عداد الخطوات لايف (Sensor Stream)
       _controller.startStepCounting(
         onStep: (liveSteps) {
           if (mounted) {
             setState(() {
-              steps = liveSteps; // تحديث لايف فوراً مع كل خطوة برجلِك
+              steps = liveSteps;
             });
           }
         },
@@ -74,17 +73,17 @@ class _HomePageViewState extends State<HomePageView> {
         },
       );
 
-      // 3️⃣ ❤️ سحب قراءة نبض القلب الافتتاحية فوراً عند فتح الصفحة
+      // ❤️ سحب قراءة نبض القلب الافتتاحية فوراً عند فتح الصفحة
       _fetchLatestHeartRate();
 
-      // 4️⃣ ⏱️ تشغيل تايمر دوري يلف كل 60 ثانية يسحب نبض القلب الجديد من الـ Health عشان نوفر البطارية
+      // ⏱️ تايمر دوري (Battery-Aware) كل 60 ثانية لتحديث النبض
       _heartRateTimer = Timer.periodic(const Duration(seconds: 60), (timer) async {
         await _fetchLatestHeartRate();
       });
     }
   }
 
-  // دالة منفصلة لسحب نبض القلب فقط وتحديث المتغير الخاص به
+  // دالة سحب نبض القلب من باكدج الـ Health
   Future<void> _fetchLatestHeartRate() async {
     try {
       final liveHeartRate = await _healthService.getLatestHeartRate();
@@ -98,18 +97,23 @@ class _HomePageViewState extends State<HomePageView> {
     }
   }
 
+  // دالة سحب بيانات الـ API (صامتة ومأمنة بالكامل)
   Future<void> _loadHomeData() async {
-    final data = await _controller.getHomeData();
-    if (data != null) {
-      setState(() {
-        homeData = data;
-      });
+    try {
+      final data = await _controller.getHomeData();
+      if (mounted && data != null) {
+        setState(() {
+          homeData = data;
+        });
+      }
+    } catch (e) {
+      print("🔴 Server Error: $e"); // بيطبع الأيرور في الـ Console بس مش بيعطل الـ UI
     }
   }
 
   @override
   void dispose() {
-    _heartRateTimer?.cancel(); // 🚀 قفل التايمر تماماً فور الخروج لمنع الـ Memory Leak
+    _heartRateTimer?.cancel(); // قفل التايمر فوراً لمنع الـ Memory Leak
     _controller.dispose();
     super.dispose();
   }
@@ -140,12 +144,11 @@ class _HomePageViewState extends State<HomePageView> {
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
-
                 ],
               ),
               SizedBox(height: 16.h),
 
-              // كارت الماكروز والإحصائيات الحية من الهاتف والسيرفر المشترك (زي ما هو بالملي)
+              // كارت الماكروز والإحصائيات الحية (مأمن تماماً بـ Fallback values)
               Container(
                 padding: const EdgeInsetsDirectional.all(16),
                 height: 192,
@@ -158,14 +161,12 @@ class _HomePageViewState extends State<HomePageView> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // 🚀 حقن نبض القلب الديناميكي الحقيقي من باكدج Health هنا داخل الـ Tabs الصغيرة بتاعتك
                         StatCardTop(
                           icon: "heart_rate.svg",
                           value: heartRate,
                           unit: "bpm",
                           label: "Heart Rate",
                         ),
-                        // 🚀 حقن خطوات اليوزر الحقيقية واللايف المحدثة بالـ Pedometer هنا
                         StatCardTop(
                           icon: "steps.svg",
                           value: steps,
@@ -202,13 +203,16 @@ class _HomePageViewState extends State<HomePageView> {
                 ),
               ),
               SizedBox(height: 16.h),
-              if (homeData?.hasPlan == false) ...[
+
+              // 🛡️ لوجيك الحماية الذكي: لو الداتا لسه مجاتش أو مفيش خطة اعرض NoPlanWidget، غير كدة اظهر الجدول
+              if (homeData == null || homeData!.hasPlan == false) ...[
                 const NoPlanWidget(),
               ] else ...[
                 WeekCalender(homeData: homeData),
                 SizedBox(height: 8.h),
-                Workout(),
+                 Workout(),
               ],
+
               SizedBox(height: 8.h),
               const FoodScannerWidget(),
             ],

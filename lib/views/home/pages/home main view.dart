@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:neutrilift/core/ui/app_image.dart';
 import 'package:neutrilift/views/logging/view.dart';
+import 'package:neutrilift/views/progress/progress_view.dart';
+import '../../settings/settings_view.dart';
 import 'home_page/view.dart';
-
 import 'package:neutrilift/views/plan/create_plan/create_plan_view.dart';
 
 class HomeView extends StatefulWidget {
@@ -15,14 +16,18 @@ class HomeView extends StatefulWidget {
 class _NewHomeViewState extends State<HomeView> {
   final list = [
     _Model(icon: "home.svg", view: const HomePageView(), label: "Home"),
-    _Model(icon: "plans.svg", view: CreatePlanView(), label: "Plans"),
+    _Model(icon: "plans.svg", view: const CreatePlanView(), label: "Plans"),
     _Model(icon: "log.svg", view: const LoggingView(), label: "Log"),
+    _Model(icon: "progress.svg", view: const ProgressView(), label: "Progress"),
+    _Model(icon: "settings.svg", view: const SettingsView(), label: "Setting"),
   ];
 
   int currentIndex = 0;
 
   @override
   Widget build(BuildContext context) {
+    const Color activeBlueColor = Color(0xff173272);
+
     return Scaffold(
       extendBody: true,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -31,8 +36,9 @@ class _NewHomeViewState extends State<HomeView> {
         decoration: const BoxDecoration(color: Color(0xffD9D9D9)),
         child: BottomNavigationBar(
           onTap: (value) {
-            currentIndex = value;
-            setState(() {});
+            setState(() {
+              currentIndex = value;
+            });
           },
           currentIndex: currentIndex,
           type: BottomNavigationBarType.fixed,
@@ -49,7 +55,7 @@ class _NewHomeViewState extends State<HomeView> {
                 children: [
                   AppImage(
                     image: list[index].icon,
-                    color: currentIndex == index ? const Color(0xff0D1F49) : Colors.grey,
+                    color: currentIndex == index ? activeBlueColor : Colors.grey,
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -57,9 +63,7 @@ class _NewHomeViewState extends State<HomeView> {
                     style: TextStyle(
                       fontWeight: FontWeight.w400,
                       fontSize: 10,
-                      color: currentIndex == index
-                          ? const Color(0xff0D1F49)
-                          : Colors.grey,
+                      color: currentIndex == index ? activeBlueColor : Colors.grey,
                     ),
                   ),
                 ],

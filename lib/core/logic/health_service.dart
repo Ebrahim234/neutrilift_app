@@ -1,32 +1,36 @@
-
 import 'package:health/health.dart';
 
 class HealthService {
   // إنشاء نسخة مفردة (Singleton) من الـ package
   final Health _health = Health();
 
-  // تحديد أنواع البيانات المطلوبة: الخطوات ونبضات القلب
+  // تحديد أنواع البيانات المطلوب التعامل معها: الخطوات ونبضات القلب
   final List<HealthDataType> _types = [
     HealthDataType.STEPS,
     HealthDataType.HEART_RATE,
   ];
 
   // دالة طلب الصلاحيات من اليوزر أوتوماتيكياً
-  // دالة طلب الصلاحيات من اليوزر أوتوماتيكياً
   Future<bool> requestPermissions() async {
     try {
-      // 🚀 تم التعديل هنا لـ HealthDataAccess بدلاً من الـ enum القديم
-      bool? hasPermissions = await _health.hasPermissions(_types, 
-        HealthDataAccess.READ,
-        HealthDataAccess.READ,
-      ]);
+      // 🚀 تم إصلاح الأقواس وإضافة المعامل المفقود "permissions" هنا
+      bool? hasPermissions = await _health.hasPermissions(
+        _types,
+        permissions: [
+          HealthDataAccess.READ,
+          HealthDataAccess.READ,
+        ],
+      );
 
       if (hasPermissions == false || hasPermissions == null) {
         // إذا لم يكن لديه صلاحية، نطلبها منه الآن
-        return await _health.requestAuthorization(_types, permissions: [
-          HealthDataAccess.READ,
-          HealthDataAccess.READ,
-        ]);
+        return await _health.requestAuthorization(
+          _types,
+          permissions: [
+            HealthDataAccess.READ,
+            HealthDataAccess.READ,
+          ],
+        );
       }
       return true;
     } catch (e) {
@@ -68,7 +72,7 @@ class HealthService {
         endTime: now,
       );
       if (healthData.isNotEmpty) {
-        // 🚀 تم التعديل هنا لـ dateTo بدلاً من dateEndTime المتغيرة في التحديث الجديد
+        // ترتيب البيانات تنازلياً للحصول على الأحدث أولاً باستخدام dateTo
         healthData.sort((a, b) => b.dateTo.compareTo(a.dateTo));
 
         // استخراج القيمة العددية لآخر نبض مسجل

@@ -16,7 +16,6 @@ class _FoodScannerWidgetState extends State<FoodScannerWidget> {
   final Dio dio = ApiHelper.createDio();
   bool isLoading = false;
 
-  get BarcodeScanner => null;
 
   Future<void> _scanBarcode() async {
     try {
@@ -32,8 +31,6 @@ class _FoodScannerWidgetState extends State<FoodScannerWidget> {
       if (response.statusCode == 200) {
         final data = response.data;
         print("✅ Nutrition Data: $data");
-
-        // 🚀 النقل لشاشة عرض تفاصيل المنتج وتمرير الـ JSON الراجع من الباك إند
         goTo(ScannerDetailsView(nutritionData: data), canPop: true);
       }
     } on DioException catch (e) {

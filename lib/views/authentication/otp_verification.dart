@@ -1,114 +1,179 @@
-import 'package:dio/dio.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:neutrilift/core/logic/api_helper.dart';
-import 'package:neutrilift/core/logic/helper_method.dart';
-import 'package:neutrilift/core/ui/Pin_code_text_field.dart';
-import 'package:neutrilift/core/ui/app_button.dart';
-import 'package:neutrilift/views/authentication/reset_password.dart';
-// 🚀 استيراد التايمر اللي أنت عامله
-import 'package:neutrilift/core/ui/circular_countdown_timer.dart';
+
+import '../../core/logic/api_helper.dart';
 
 class OtpVerificationView extends StatefulWidget {
-  final String email; // استلام الإيميل من صفحة الـ Forget Password
+  final String email;
 
-  const OtpVerificationView({super.key, required this.email});
+  const OtpVerificationView({Key? key, required this.email}) : super(key: key);
 
   @override
   State<OtpVerificationView> createState() => _OtpVerificationViewState();
 }
 
 class _OtpVerificationViewState extends State<OtpVerificationView> {
-  final dio = ApiHelper.createDio();
-  String otpCode = "";
-  bool isLoading = false;
+  final TextEditingController _otpController = TextEditingController();
 
-  Future<void> verifyCode() async {
-    if (otpCode.length < 4) {
-      showMsg("Please enter the complete 4-digit code", isError: true);
-      return;
-    }
+  // متغيرات لوجيك الـ Resend Timer
+  int _secondsRemaining = 60;
+  Timer? _timer;
+  bool _canResend = false;
+  bool _isLoading = false;
 
-    setState(() => isLoading = true);
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
 
+  void _startTimer() {
+    setState(() {
+      _canResend = false;
+      _secondsRemaining = 60;
+    });
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_secondsRemaining > 0) {
+        setState(() {
+          _secondsRemaining--;
+        });
+      } else {
+        setState(() {
+          _canResend = true;
+        });
+        _timer?.cancel();
+      }
+    });
+  }
+
+  void _resendOtpAction() async {
+    setState(() => _isLoading = true);
     try {
-      // 🚀 الـ API التانية للتأكد من الكود
-      final response = await dio.post(
-        '/api/password-reset/verify/',
-        data: {
-          "email": widget.email,
-          "code": otpCode,
-        },
-      );
+      final response = await ApiHelper.createDio().post('/api/auth/resend-otp/', data: {
+        'email': widget.email,
+      });
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        showMsg("Code verified successfully! 🔓");
-        goTo(ResetPasswordView(email: widget.email));
-      }
-    } on DioException catch (e) {
-      String errorMsg = "Invalid verification code.";
-      if (e.response?.data is Map) {
-        errorMsg = e.response?.data['error'] ?? errorMsg;
-      }
-      showMsg(errorMsg, isError: true);
+      await Future.delayed(const Duration(seconds: 1));
+
+      _startTimer(); // لو الريكويست نجح.. صفر العداد وابدأ دقيقة جديدة
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('A new OTP has been sent to your email.')),
+      );
     } catch (e) {
-      showMsg("An unexpected error occurred", isError: true);
-    } finally { // ✅ تم تصليح الغلطة هنا من final لـ finally
-      if (mounted) setState(() => isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to resend OTP. Please try again.')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
     }
+  }
+
+  void _verifyOtpAction() async {
+    if (_otpController.text.trim().isEmpty) return;
+
+    setState(() => _isLoading = true);
+    try {
+      final response = await ApiHelper.createDio().post('/api/auth/verify-otp/', data: {
+        'email': widget.email,
+        'otp': _otpController.text.trim(),
+      });
+
+      await Future.delayed(const Duration(seconds: 1));
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid OTP. Please check and try again.')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _otpController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsetsDirectional.only(top: 60, end: 16, start: 16),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Align(
-                alignment: AlignmentDirectional.topStart,
-                child: Text.rich(
-                  style: GoogleFonts.muktaVaani(),
-                  TextSpan(
-                    children: [
-                      const TextSpan(
-                        text: "Enter code from email \n",
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 36),
-                      ),
-                      TextSpan(
-                        text: "We’ve sent a 4-digit code to ${widget.email}",
-                        style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 24),
-                      ),
-                    ],
-                  ),
+      backgroundColor: const Color(0xFF0B121F),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: const BackButton(color: Colors.white),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              "Verification Code",
+              style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Please enter the OTP code sent to:\n${widget.email}",
+              style: const TextStyle(color: Colors.grey, fontSize: 14),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            TextField(
+              controller: _otpController,
+              keyboardType: TextInputType.number,
+              textAlign: TextAlign.center,
+              maxLength: 6, // أو 4 أرقام حسب الباك إند عندك
+              style: const TextStyle(color: Colors.white, fontSize: 24, letterSpacing: 8),
+              decoration: InputDecoration(
+                counterText: "",
+                hintText: "000000",
+                hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5), letterSpacing: 8),
+                filled: true,
+                fillColor: const Color(0xFF161F30),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
                 ),
               ),
-              const SizedBox(height: 60),
-
-              // حقل إدخال الكود
-              MyPinCodeTextField(
-                onChanged: (value) {
-                  otpCode = value; // حفظ الكود أول بأول
-                },
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: _isLoading ? null : _verifyOtpAction,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1E6DEB),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
+              child: _isLoading
+                  ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : const Text("Verify", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+            ),
+            const SizedBox(height: 24),
 
-              const SizedBox(height: 16),
-
-              // 🚀 الـ Timer والـ Resend اللي أنت عامله للـ OTP
-              const CircularCountdownTimer(),
-
-              const SizedBox(height: 50),
-
-              AppButton(
-                title: "Verify Code",
-                width: double.infinity,
-                isLoading: isLoading,
-                onPressed: verifyCode,
-              ),
-            ],
-          ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text("Didn't receive code? ", style: TextStyle(color: Colors.grey)),
+                TextButton(
+                  onPressed: _canResend && !_isLoading ? _resendOtpAction : null,
+                  child: Text(
+                    _canResend ? "Resend OTP" : "Resend in $_secondsRemaining s",
+                    style: TextStyle(
+                      color: _canResend ? const Color(0xFF1E6DEB) : Colors.grey,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

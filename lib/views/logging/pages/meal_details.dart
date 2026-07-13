@@ -7,7 +7,7 @@ import 'package:neutrilift/views/logging/pages/logging_success_dialog.dart';
 
 class MealDetailsView extends StatelessWidget {
   final File imageFile;
-  final Map<String, dynamic> mealData; // 👈 استقبال بيانات السيرفر الحقيقية هنا
+  final Map<String, dynamic> mealData; // استقبال بيانات السيرفر الحقيقية هنا
 
   const MealDetailsView({
     super.key,
@@ -27,6 +27,9 @@ class MealDetailsView extends StatelessWidget {
     String carbs = "${mealData['carbs_g'] ?? 0}g";
     String fats = "${mealData['fats_g'] ?? 0}g";
 
+    // 🚀 1️⃣ استخراج قائمة تنبيهات الـ AI الجديدة (لو مش موجودة بترجع قائمة فاضية تلقائياً)
+    List mealBalance = mealData['meal_balance'] ?? [];
+
     return Scaffold(
       backgroundColor: const Color(0xFFF3F4F6),
       appBar: AppBar(
@@ -45,6 +48,8 @@ class MealDetailsView extends StatelessWidget {
                 child: Image.file(imageFile, width: double.infinity, height: 250.h, fit: BoxFit.cover),
               ),
               SizedBox(height: 24.h),
+
+              // كارت الماكروز الرئيسي
               Container(
                 padding: EdgeInsets.all(16.w),
                 decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16.r)),
@@ -68,6 +73,38 @@ class MealDetailsView extends StatelessWidget {
                   ],
                 ),
               ),
+
+              // 🚀 2️⃣ حقن سيكشن الـ AI Meal Insights & Balance الجديد بشكل مشروط
+              if (mealBalance.isNotEmpty) ...[
+                SizedBox(height: 20.h),
+                Text(
+                  "AI Meal Insights & Balance",
+                  style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold, color: const Color(0xff1A2D6B)),
+                ),
+                SizedBox(height: 8.h),
+                ...mealBalance.map((insight) => Container(
+                  margin: EdgeInsets.only(bottom: 8.h),
+                  padding: EdgeInsets.all(12.w),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF8E1), // لون أصفر تنبيهي خفيف متناسق مع التصميم
+                    borderRadius: BorderRadius.circular(12.r),
+                    border: Border.all(color: const Color(0xFFFFB300), width: 1),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.warning_amber_rounded, color: Color(0xFFFF8F00)), // الأيقونة التحذيرية المطابقة لـ Postman
+                      SizedBox(width: 10.w),
+                      Expanded(
+                        child: Text(
+                          insight.toString(), // تحويل آمن لنص التنبيه
+                          style: TextStyle(fontSize: 13.sp, color: const Color(0xFF5D4037), fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                    ],
+                  ),
+                )).toList(),
+              ],
+
               SizedBox(height: 32.h),
               AppButton(
                 title: "Save meal",
@@ -75,7 +112,8 @@ class MealDetailsView extends StatelessWidget {
                 onPressed: () {
                   goTo(const LoggingSuccessDialog(isSleep: false));
                 },
-              )
+              ),
+              SizedBox(height: 20.h), // مساحة أمان سفلية للـ scrolling
             ],
           ),
         ),

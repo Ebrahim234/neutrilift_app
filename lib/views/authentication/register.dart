@@ -5,6 +5,7 @@ import 'package:neutrilift/core/logic/helper_method.dart';
 import 'package:neutrilift/core/ui/app_button.dart';
 import 'package:neutrilift/core/ui/app_input.dart';
 import 'package:neutrilift/core/ui/app_login_or_app_register.dart';
+import 'package:neutrilift/views/authentication/login.dart';
 import 'package:neutrilift/views/authentication/otp_verification.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -63,7 +64,7 @@ class _RegisterViewState extends State<RegisterView> {
         const SnackBar(content: Text("Registered Successfully ✅")),
       );
 
-      goTo(OtpVerificationView(email: '',));
+      goTo(LoginView());
     } on DioException catch (e) {
       print("Status: ${e.response?.statusCode}");
       print("Error: ${e.response?.data}");
