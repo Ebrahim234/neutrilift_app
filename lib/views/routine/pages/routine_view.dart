@@ -28,7 +28,6 @@ class _RoutinesViewState extends State<RoutinesView> {
     _fetchRoutines();
   }
 
-  // 1. جلب الروتينات (GET)
   Future<void> _fetchRoutines() async {
     try {
       final prefs = await SharedPreferences.getInstance();

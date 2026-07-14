@@ -1,18 +1,18 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:neutrilift/core/ui/app_image.dart';
 import 'package:neutrilift/views/home/pages/home_page/widgets/no_plan.dart';
 import 'package:neutrilift/views/home/pages/home_page/widgets/stats_card/stat_card_side.dart';
 import 'package:neutrilift/views/home/pages/home_page/widgets/stats_card/stat_card_top.dart';
 import 'package:neutrilift/views/home/pages/home_page/widgets/week_calender.dart';
 import 'package:neutrilift/views/home/pages/home_page/widgets/workout.dart';
 import 'package:neutrilift/views/home/pages/home_page/widgets/workout_routines.dart';
+import 'package:neutrilift/views/home/pages/home_page/barcode_feature/food_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/logic/health_service.dart';
 import '../../../../core/logic/helper_method.dart';
+import '../../../authentication/details.dart';
 import '../../../authentication/login.dart';
-import 'barcode_feature/food_scanner.dart';
 import 'home_controller.dart';
 import 'home_model.dart';
 
@@ -70,7 +70,9 @@ class _HomePageViewState extends State<HomePageView> {
 
       _fetchLatestHeartRate();
 
-      _heartRateTimer = Timer.periodic(const Duration(seconds: 60), (timer) async {
+      _heartRateTimer = Timer.periodic(const Duration(seconds: 60), (
+        timer,
+      ) async {
         await _fetchLatestHeartRate();
       });
     }
@@ -89,9 +91,23 @@ class _HomePageViewState extends State<HomePageView> {
     }
   }
 
+  // 🚀 تحميل بيانات الهوم مأمنة تماماً بـ الحظر المحلي لمنع تعليق الكاش
+  // 🚀 تحميل بيانات الهوم مع التوجيه الفوري لشاشة الـ Details لو السيرفر طلب ده
+  // 🚀 تحميل بيانات الهوم مع التوجيه الفوري لشاشة الـ Details لو السيرفر طلب ده
   Future<void> _loadHomeData() async {
     try {
-      final data = await _controller.getHomeData();
+      final data = await _controller.getHomeData().timeout(const Duration(seconds: 3));
+
+      // 🚀 الفحص السحري: لو الكنترولر لقط 302 ورفع الراية، طيران فوراً لشاشة الـ Details!
+      if (HomeController.redirectToDetails) {
+        HomeController.redirectToDetails = false; // تصفير الفلاج عشان ميعلقش
+        if (mounted) {
+          print("➡️ Going to DetailsView screen as requested by server 302!");
+          goTo(const DetailsView()); // الانتقال الفوري للشاشة اللي مديها لليوزر يملى بياناته
+        }
+        return; // إنهاء الدالة هنا ومفيش لودينج هيعلق
+      }
+
       if (mounted) {
         setState(() {
           homeData = data;
@@ -99,9 +115,12 @@ class _HomePageViewState extends State<HomePageView> {
         });
       }
     } catch (e) {
-      print("🔴 Error loading home data: $e");
+      print("🔴 Error loading home data or Timeout: $e");
       if (mounted) {
-        setState(() => isLoading = false);
+        setState(() {
+          isLoading = false;
+          homeData = null;
+        });
       }
     }
   }
@@ -124,7 +143,9 @@ class _HomePageViewState extends State<HomePageView> {
       );
     }
 
-    int displayHeartRate = (heartRate != 72 && heartRate != 0) ? heartRate : (homeData?.heartRate ?? 72);
+    int displayHeartRate = (heartRate != 72 && heartRate != 0)
+        ? heartRate
+        : (homeData?.heartRate ?? 72);
     int displaySteps = steps > 0 ? steps : (homeData?.steps ?? 0);
 
     return Scaffold(
@@ -135,31 +156,17 @@ class _HomePageViewState extends State<HomePageView> {
           onRefresh: _loadHomeData,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsetsDirectional.only(start: 16, end: 16, top: 30, bottom: 60),
+            padding: const EdgeInsetsDirectional.only(
+              start: 16,
+              end: 16,
+              top: 30,
+              bottom: 60,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    AppImage(
-                      image: "https://picsum.photos/200",
-                      height: 70.h,
-                      width: 70.w,
-                      isCircle: true,
-                      fit: BoxFit.fill,
-                    ),
-                    SizedBox(width: 8.w),
-                    const Expanded(
-                      child: Text(
-                        "Welcome, Ahmed",
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                ),
                 SizedBox(height: 16.h),
 
-                // كارت الإحصائيات الحقيقية
                 Container(
                   padding: const EdgeInsetsDirectional.all(16),
                   height: 192,
@@ -172,17 +179,48 @@ class _HomePageViewState extends State<HomePageView> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          StatCardTop(icon: "heart_rate.svg", value: displayHeartRate, unit: "bpm", label: "Heart Rate"),
-                          StatCardTop(icon: "steps.svg", value: displaySteps, unit: "Today", label: "Steps"),
-                          StatCardTop(icon: "calorie_intake.svg", value: homeData?.dailyCalorieIntake ?? 0, unit: "kcal", label: "Calories Intake"),
+                          StatCardTop(
+                            icon: "heart_rate.svg",
+                            value: displayHeartRate,
+                            unit: "bpm",
+                            label: "Heart Rate",
+                          ),
+                          StatCardTop(
+                            icon: "steps.svg",
+                            value: displaySteps,
+                            unit: "Today",
+                            label: "Steps",
+                          ),
+                          StatCardTop(
+                            icon: "calorie_intake.svg",
+                            value: homeData?.dailyCalorieIntake ?? 0,
+                            unit: "kcal",
+                            label: "Calories Intake",
+                          ),
                         ],
                       ),
                       SizedBox(height: 8.h),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          StatCardSide(icon: "sleep.svg", value: double.tryParse(homeData?.weeklySleepingHours ?? "0.0") ?? 0.0, unit: "Hrs", label: "Avg Sleep"),
-                          StatCardSide(icon: "weight.svg", value: double.tryParse(homeData?.weight ?? "0.0") ?? 0.0, unit: "Kg", label: "Weight"),
+                          StatCardSide(
+                            icon: "sleep.svg",
+                            value:
+                                double.tryParse(
+                                  homeData?.weeklySleepingHours ?? "0.0",
+                                ) ??
+                                0.0,
+                            unit: "Hrs",
+                            label: "Avg Sleep",
+                          ),
+                          StatCardSide(
+                            icon: "weight.svg",
+                            value:
+                                double.tryParse(homeData?.weight ?? "0.0") ??
+                                0.0,
+                            unit: "Kg",
+                            label: "Weight",
+                          ),
                         ],
                       ),
                     ],
@@ -190,11 +228,13 @@ class _HomePageViewState extends State<HomePageView> {
                 ),
                 SizedBox(height: 16.h),
 
-                // بانر التهنئة عند انتهاء الخطة (State 3)
                 if (homeData?.planFinished == true) ...[
                   Container(
                     width: double.infinity,
-                    padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
+                    padding: EdgeInsets.symmetric(
+                      vertical: 12.h,
+                      horizontal: 16.w,
+                    ),
                     margin: EdgeInsets.only(bottom: 16.h),
                     decoration: BoxDecoration(
                       color: const Color(0xff10B981),
@@ -202,7 +242,11 @@ class _HomePageViewState extends State<HomePageView> {
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.check_circle_rounded, color: Colors.white, size: 24),
+                        const Icon(
+                          Icons.check_circle_rounded,
+                          color: Colors.white,
+                          size: 24,
+                        ),
                         SizedBox(width: 8.w),
                         Expanded(
                           child: Text(
@@ -219,15 +263,17 @@ class _HomePageViewState extends State<HomePageView> {
                   ),
                 ],
 
-                // هيكلة الحالات الثلاثة ديناميكياً لتطابق الـ Figma بالملّي
-                if (homeData == null || homeData!.hasPlan == false || homeData!.planFinished == true) ...[
+                // 🚀 فحص وعرض الشاشة الصح ديناميكياً
+                if (homeData == null ||
+                    homeData!.hasPlan == false ||
+                    homeData!.planFinished == true) ...[
                   const NoPlanWidget(),
                   SizedBox(height: 16.h),
                   const WorkoutRoutines(),
                 ] else ...[
                   WeekCalender(homeData: homeData),
                   SizedBox(height: 8.h),
-                  Workout(homeData: homeData), // 🚀 تمرير الـ homeData لجلب التمرين ديناميكياً
+                  Workout(homeData: homeData, onRefresh: _loadHomeData),
                   SizedBox(height: 16.h),
                   const WorkoutRoutines(),
                 ],

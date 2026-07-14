@@ -1,25 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:neutrilift/core/logic/helper_method.dart';
-import '../../../../workout/pages/workout_view.dart';
 import '../home_model.dart';
+import '../../../../plan/my_plan_view.dart';
 
 class Workout extends StatelessWidget {
   final HomeModel? homeData;
+  final VoidCallback? onRefresh; // 🚀 الـ Callback السحري لتحديث الهوم
 
-  const Workout({super.key, this.homeData});
+  const Workout({super.key, this.homeData, this.onRefresh});
 
   @override
   Widget build(BuildContext context) {
     int todayWeekday = DateTime.now().weekday;
 
     final todayWorkout = homeData?.exerciseDays?.firstWhere(
-      (e) => e.day == todayWeekday,
+          (e) => e.day == todayWeekday,
       orElse: () => ExerciseDay(day: null),
     );
 
-    bool isWorkoutToday =
-        todayWorkout != null &&
+    bool isWorkoutToday = todayWorkout != null &&
         todayWorkout.day != null &&
         homeData?.dayStatus != "off";
 
@@ -77,20 +77,16 @@ class Workout extends StatelessWidget {
     }
 
     return InkWell(
-      onTap: () {
-        final int? currentGroupId = todayWorkout?.groupId;
+      onTap: () async {
+        // 🚀 انتظر نتيجة الرجوع من صفحة تفاصيل الخطة
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => MyPlanView(homeData: homeData)),
+        );
 
-        if (currentGroupId != null) {
-          goTo(
-            WorkoutView(
-              groupId:
-                  currentGroupId,
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("🔴 No Workout ID found for today!")),
-          );
+        // 🚀 لو المستخدم مسح الخطة (النتيجة رجعت true)، نحدث بيانات الهوم فوراً!
+        if (result == true && onRefresh != null) {
+          onRefresh!();
         }
       },
       borderRadius: BorderRadius.circular(16.r),
